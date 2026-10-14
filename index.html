@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Английский с Быничем — школа moo-слов</title>
+    <title>Английский с Быничем — английский для детей 5–10 лет</title>
     <meta
       name="description"
-      content="Бынич, бык с добрыми глазами, учит детей английским словам на «moo» и произносит их протяжным мычанием: мууууун, муууууд."
+      content="Школа английского языка для детей. Занятия на лугу, группа до шести телят. Пробное занятие — бесплатно."
     />
     <link
       rel="icon"
@@ -17,10 +17,10 @@
     <header class="site-header">
       <a class="brand" href="#top">Му-En</a>
       <nav class="nav">
-        <a href="#dictionary">Словарь</a>
-        <a href="#dj">Moo-DJ</a>
+        <a href="#program">Программа</a>
+        <a href="#quiz">Повторение</a>
         <a href="#reviews">Отзывы</a>
-        <a href="#premium">Тариф</a>
+        <a href="#premium">Стоимость</a>
         <a href="#faq">FAQ</a>
       </nav>
     </header>
@@ -28,18 +28,17 @@
     <main id="top">
       <section class="hero">
         <div class="hero__text">
+          <p class="hero__badge">Преподаватель года — номинация «Луг»</p>
           <h1>Английский с Быничем</h1>
           <p class="hero__sub">
-            Школа английского для детей. Учим только самое главное — слова на «moo».
-            <strong>От муу до fluency.</strong>
+            Английский для детей 5–10 лет. Занятия на лугу, группа — до шести телят.
+            <strong>Пробное занятие — бесплатно.</strong>
           </p>
           <div class="hero__actions">
-            <button class="btn" id="meet-btn" type="button">Познакомиться</button>
+            <button class="btn" id="meet-btn" type="button">Познакомиться с преподавателем</button>
             <button class="btn btn--ghost" id="hold-btn" type="button">Зажми Бынича</button>
           </div>
-          <p class="hero__hint">
-            Веди курсором или пальцем — Бынич следит добрыми глазами. Зажми его — и он потянет «мууууу».
-          </p>
+          <p class="hero__hint">Погладьте Бынича по голове. Он не против.</p>
         </div>
         <div class="hero__stage">
           <div class="bubble" id="bubble" aria-live="polite"></div>
@@ -141,6 +140,9 @@
                   <circle cx="252.5" cy="175.5" r="1.6" fill="#fff" opacity="0.85" />
                 </g>
               </g>
+              <!-- довольные прикрытые глаза (для поглаживания) -->
+              <path class="eye-arc eye-arc--l" d="M150 176 Q 168 158 186 176" fill="none" stroke="#3b2314" stroke-width="5" stroke-linecap="round" />
+              <path class="eye-arc eye-arc--r" d="M238 176 Q 256 158 274 176" fill="none" stroke="#3b2314" stroke-width="5" stroke-linecap="round" />
               <!-- румянец -->
               <ellipse cx="122" cy="214" rx="13" ry="8" fill="#e89b8b" opacity="0.5" />
               <ellipse cx="302" cy="214" rx="13" ry="8" fill="#e89b8b" opacity="0.5" />
@@ -159,76 +161,136 @@
         </div>
       </section>
 
-      <section class="section" id="dictionary">
-        <h2>Словарь «Moo-words»</h2>
-        <p class="section__lead">Нажми на карточку — Бынич произнесёт слово по-быньочьи.</p>
-        <div class="cards" id="cards"></div>
+      <section class="section" id="program">
+        <h2>Программа</h2>
+        <p class="section__lead">Тринадцать слов. Три уровня. Ноль воды.</p>
+        <div class="progress">
+          <div class="progress__track"><div class="progress__fill" id="progress-fill"></div></div>
+          <span class="progress__text" id="progress-text"></span>
+        </div>
+        <div id="program-levels"></div>
       </section>
 
-      <section class="section section--alt" id="dj">
-        <h2>Moo-DJ</h2>
-        <p class="section__lead">Собери свой бычий бит. Три пада за две секунды — муу-комбо.</p>
+      <section class="section section--alt" id="quiz">
+        <h2>Повторение</h2>
+        <p class="section__lead">Бынич произносит слово — выберите, какое.</p>
+        <div class="quiz">
+          <button class="btn quiz__listen" id="quiz-listen" type="button">Послушать ещё раз</button>
+          <div class="quiz__options" id="quiz-options"></div>
+          <p class="quiz__streak" id="quiz-streak" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <section class="section" id="ask">
+        <h2>Словарь под рукой</h2>
+        <p class="section__lead">Введите слово — Бынич посмотрит у себя.</p>
+        <form class="ask" id="ask-form">
+          <input
+            class="ask__input"
+            id="ask-input"
+            type="text"
+            placeholder="любое английское слово"
+            autocomplete="off"
+            maxlength="40"
+          />
+          <button class="btn" type="submit">Спросить</button>
+        </form>
+      </section>
+
+      <section class="section section--alt" id="practice">
+        <h2>Свободная практика</h2>
+        <p class="section__lead">Соберите занятие сами.</p>
         <div class="pads" id="pads"></div>
       </section>
 
       <section class="section" id="reviews">
-        <h2>Отзывы стада</h2>
+        <h2>Отзывы</h2>
         <div class="quotes">
           <figure class="quote">
-            <blockquote>«До Бынича я вообще не разговаривала. Теперь говорю только на английском. Муу-спасибо!»</blockquote>
-            <figcaption>Зорька, корова, 4 года</figcaption>
+            <blockquote>«Петька стал увереннее. И громче — теперь его слышно с другого конца луга.»</blockquote>
+            <figcaption>мама Петьки, 6 лет</figcaption>
           </figure>
           <figure class="quote">
-            <blockquote>«Нуууууу!»</blockquote>
-            <figcaption>Борька, телёнок, 5 лет <span class="quote__tr">(перевод: «очень нравится»)</span></figcaption>
+            <blockquote>«Раньше я вообще молчала. Теперь говорят, у меня акцент.»</blockquote>
+            <figcaption>Зорька, соседка по лугу</figcaption>
           </figure>
           <figure class="quote">
-            <blockquote>«Наконец-то выучил, как правильно представляться. Муу-хай!»</blockquote>
-            <figcaption>Mr. Moose, лось, Канада</figcaption>
+            <blockquote>«Полгода назад не знал ни одного английского слова. Теперь знаю.»</blockquote>
+            <figcaption>Mr. Moose, выпускник</figcaption>
           </figure>
         </div>
       </section>
 
       <section class="premium" id="premium">
         <div class="premium__card">
-          <h2>Moo-t Premium</h2>
-          <p class="premium__price">5 сена / мес</p>
-          <ul class="premium__list">
-            <li>Безлимитное мычание</li>
-            <li>Личное «муу» от Бынича каждое утро</li>
-            <li>Сертификат «Спикер луга», уровень Moon</li>
-            <li>Доступ к закрытому слову «moo»</li>
-          </ul>
-          <button class="btn btn--gold" id="pay-btn" type="button">Оплатить сеном</button>
-          <p class="premium__note">Возврат — сеном, в течение 14 дней.</p>
+          <h2>Стоимость</h2>
+          <div class="premium__plans">
+            <div class="plan">
+              <h3>Пробное</h3>
+              <p class="plan__price">бесплатно</p>
+              <ul class="plan__list">
+                <li>одно занятие</li>
+                <li>на лугу</li>
+              </ul>
+            </div>
+            <div class="plan plan--hit">
+              <h3>Абонемент «Луна»</h3>
+              <p class="plan__price">5 сена / мес</p>
+              <ul class="plan__list">
+                <li>все тринадцать слов</li>
+                <li>сертификат «Спикер луга»</li>
+                <li>прогулка с Быничем</li>
+              </ul>
+              <button class="btn btn--gold" id="pay-btn" type="button">Записаться</button>
+            </div>
+          </div>
+          <p class="premium__note">Взрослым — отдельная группа. Оплата — сеном.</p>
         </div>
       </section>
 
       <section class="section" id="faq">
-        <h2>FAQ</h2>
+        <h2>Вопросы и ответы</h2>
         <details class="faq__item" open>
-          <summary>А если слово не начинается на «moo»?</summary>
-          <p>Тогда это не английское слово.</p>
+          <summary>Какая методика?</summary>
+          <p>Полное погружение. Среда — луг.</p>
         </details>
         <details class="faq__item">
-          <summary>Сколько длится курс?</summary>
-          <p>Пока не замычитесь. В среднем — три недели и одна трава.</p>
+          <summary>Почему в программе так мало слов?</summary>
+          <p>В программе все нужные слова.</p>
         </details>
         <details class="faq__item">
-          <summary>Как проходят занятия?</summary>
-          <p>На лугу. Камеру включать не обязательно, мычание — обязательно.</p>
+          <summary>А если ребёнок уже знает слово moon?</summary>
+          <p>Тогда начнёт сразу со второго уровня.</p>
         </details>
         <details class="faq__item">
-          <summary>Подойдёт ли курс взрослым?</summary>
-          <p>Да, но взрослые платят сеном.</p>
+          <summary>Есть ли онлайн-занятия?</summary>
+          <p>Онлайн-луг пока не придумали.</p>
+        </details>
+        <details class="faq__item">
+          <summary>Подойдёт ли взрослым?</summary>
+          <p>Да, но группа отдельная: взрослые запоминают медленнее.</p>
         </details>
       </section>
     </main>
 
     <footer class="site-footer">
+      <p class="site-footer__slogan">От муу до fluency.</p>
       <p>© Бынич. Все права защищены рогами.</p>
       <p class="site-footer__small">Сделано на лугу. Без единого внешнего запроса.</p>
     </footer>
+
+    <!-- диплом за всю программу -->
+    <div class="diploma" id="diploma" hidden>
+      <div class="diploma__card">
+        <p class="diploma__school">Школа «Английский с Быничем»</p>
+        <h3 class="diploma__title">Диплом</h3>
+        <p class="diploma__line">присваивается звание</p>
+        <p class="diploma__rank">Спикер луга</p>
+        <p class="diploma__line">уровень — Moon</p>
+        <p class="diploma__sign">Выдал лично: Бынич (копытом)</p>
+        <button class="btn" id="diploma-close" type="button">Гордиться</button>
+      </div>
+    </div>
 
     <script type="module" src="/src/main.ts"></script>
   </body>
