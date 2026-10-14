@@ -24,12 +24,6 @@ const setMooing = (ms: number): void => {
   mooingTimer = window.setTimeout(() => bull?.classList.remove('bull--mooing'), ms)
 }
 
-const shake = (): void => {
-  if (body.classList.contains('shake')) return
-  body.classList.add('shake')
-  window.setTimeout(() => body.classList.remove('shake'), 480)
-}
-
 // ---------- выразительные состояния ----------
 let puzzledTimer = 0
 const puzzled = (ms = 1500): void => {
@@ -325,33 +319,40 @@ if (bull) {
     askInput.value = ''
   })
 
-  // ---------- свободная практика (пады) ----------
-  const pads = document.getElementById('pads')
-  const padTimes: number[] = []
-  if (pads) {
-    WORDS.slice(0, 6).forEach((w, i) => {
-      const el = document.createElement('button')
-      el.type = 'button'
-      el.className = `pad pad--${(i % 6) + 1}`
-      el.innerHTML = `
-        <span class="pad__say">${w.say.toUpperCase()}</span>
-        <span class="pad__en">${w.en}</span>`
-      el.addEventListener('click', () => {
-        const d = engine.mooWord(w.en)
-        setMooing(d * 1000 + 120)
-        const now = performance.now()
-        padTimes.push(now)
-        while (padTimes.length > 0 && padTimes[0] < now - 2000) padTimes.shift()
-        if (padTimes.length >= 3) {
-          bull.classList.add('bull--combo')
-          window.setTimeout(() => bull.classList.remove('bull--combo'), 1000)
-          shake()
-          bubble('Ещё! Ещё!', 1000)
-          padTimes.length = 0
-        }
-      })
-      pads.append(el)
-    })
+  // ---------- Бынич следует за прокруткой ----------
+  // В hero фиксированный слой в точности накрывает плейсхолдер (.hero__stage).
+  // Когда hero прокручен, Бынич «причаливает» в правый нижний угол и остаётся компаньоном.
+  const stage = document.getElementById('hero-stage')
+  const mascot = document.getElementById('mascot')
+  if (stage && mascot) {
+    const place = (): void => {
+      const r = stage.getBoundingClientRect()
+      const vw = document.documentElement.clientWidth
+      const vh = window.innerHeight
+      const docked = r.bottom < 140
+      if (docked) {
+        const w = Math.max(110, Math.min(170, vw * 0.16))
+        mascot.style.width = `${w}px`
+        mascot.style.left = `${vw - w - 14}px`
+        mascot.style.top = `${vh - w * (470 / 420) - 14}px`
+      } else {
+        mascot.style.width = `${r.width}px`
+        mascot.style.left = `${r.left}px`
+        mascot.style.top = `${r.top}px`
+      }
+      mascot.classList.toggle('mascot--docked', docked)
+    }
+    let placeRaf = 0
+    window.addEventListener(
+      'scroll',
+      () => {
+        cancelAnimationFrame(placeRaf)
+        placeRaf = requestAnimationFrame(place)
+      },
+      { passive: true },
+    )
+    window.addEventListener('resize', place)
+    place()
   }
 
   // ---------- «Познакомиться» ----------
