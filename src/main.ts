@@ -183,6 +183,12 @@ if (bull) {
     '<path d="M12 3.5a3 3 0 0 0-3 3V12a3 3 0 0 0 6 0V6.5a3 3 0 0 0-3-3Z" fill="currentColor"/>' +
     '<path d="M6.2 11.4a5.8 5.8 0 0 0 11.6 0M12 17.2V20.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'
 
+  // подсказка «нажми — услышишь»: появляется у слова при наведении
+  const SPEAKER_ICON =
+    '<svg class="card__speaker" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
+    '<path d="M4 9.5h3.2L12 5.6v12.8L7.2 14.5H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1Z" fill="currentColor"/>' +
+    '<path d="M15.4 9a4.3 4.3 0 0 1 0 6M18.1 6.3a8 8 0 0 1 0 11.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'
+
   const MIC_LABELS: Record<MicState, string> = {
     idle: 'Сказать «мууу»',
     listening: 'Слушаю…',
@@ -397,8 +403,11 @@ if (bull) {
         el.className = 'card'
         if (learned.includes(w.en)) el.classList.add('card--learned')
         el.innerHTML = `
-          <button class="card__play" type="button">
-            <span class="card__en">${w.en}</span>
+          <button class="card__play" type="button" aria-label="Послушать слово ${w.en}">
+            <span class="card__head">
+              <span class="card__en">${w.en}</span>
+              ${SPEAKER_ICON}
+            </span>
             <span class="card__say">${w.say}</span>
             <span class="card__ru">${w.ru}</span>
           </button>
@@ -423,8 +432,12 @@ if (bull) {
           mode: micBlocked ? 'hold' : 'mic',
           state: 'idle',
         }
-        const play = el.querySelector('.card__play') as HTMLButtonElement
-        play.addEventListener('click', () => playWord(w, el))
+        // клик в любое место карточки озвучивает слово — кроме кнопки «мууу»
+        el.addEventListener('click', (e) => {
+          const target = e.target as Element | null
+          if (target?.closest('.card__mic')) return
+          playWord(w, el)
+        })
         ctl.mic.addEventListener('click', () => {
           if (performance.now() - lastHoldEnd < 400) return // это хвост «зажми и мычи»
           void onMicPress(ctl)
@@ -517,7 +530,8 @@ if (bull) {
       const vh = window.innerHeight
       const docked = r.bottom < 140
       if (docked) {
-        const w = Math.max(110, Math.min(170, vw * 0.16))
+        // на телефоне компаньон мельче: не заслоняет карточки
+        const w = Math.max(88, Math.min(160, vw * 0.15))
         mascot.style.width = `${w}px`
         mascot.style.left = `${vw - w - 14}px`
         mascot.style.top = `${vh - w * (470 / 420) - 14}px`

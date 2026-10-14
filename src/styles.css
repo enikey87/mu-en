@@ -39,6 +39,8 @@
   --accent-500: #ff8a3d;
   --accent-700: #e06b1f;
   --teal-500: #2fb8a6;
+  --teal-700: #1c8a7c;
+  --teal-100: #e4f6f2;
   --amber-500: #f7b32b;
   --amber-700: #c98f12;
   --pink-500: #f2698f;
@@ -202,33 +204,44 @@ h2 {
   flex-direction: column;
   gap: var(--space-2);
   padding: var(--space-4);
-  background: var(--cream-50);
+  background: linear-gradient(180deg, #fffdf7, var(--cream-100));
   border: 3px solid var(--line);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
+  cursor: pointer;
   transition:
     transform var(--dur-base) ease-out,
     box-shadow var(--dur-base) ease-out,
-    border-color var(--dur-base);
+    border-color var(--dur-base),
+    background var(--dur-base);
 }
 
+/* наведение: карточка приподнимается и обводится цветом действия */
 .card:hover,
 .card:focus-within {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-3px);
+  border-color: var(--teal-500);
+  background: #fffef9;
+  box-shadow:
+    0 8px 0 var(--line-strong),
+    0 0 0 5px rgba(47, 184, 166, 0.1);
 }
 
 .card--active {
   transform: translateY(1px);
   border-color: var(--teal-500);
+  box-shadow: var(--shadow-card);
 }
 
 /* идёт прослушивание микрофона */
 .card--listening {
   border-color: var(--teal-500);
+  box-shadow:
+    0 8px 0 var(--line-strong),
+    0 0 0 5px rgba(47, 184, 166, 0.16);
 }
 
-/* «слово» — кнопка озвучки: клик мычит, но галочку не выдаёт */
+/* «слово» — кнопка озвучки; кликабельна вся карточка, а это её клавиатурный путь */
 .card__play {
   display: flex;
   flex-direction: column;
@@ -243,28 +256,79 @@ h2 {
   cursor: pointer;
 }
 
-.card__play:active {
-  transform: translateY(1px);
+/* фокус с клавиатуры обводит карточку целиком, а не половину */
+.card:has(.card__play:focus-visible) {
+  outline: 3px solid var(--teal-500);
+  outline-offset: 3px;
+}
+
+@supports selector(:has(*)) {
+  /* обводка уже на карточке — внутренняя была бы второй */
+  .card__play:focus-visible {
+    outline: none;
+  }
+}
+
+.card__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-right: var(--space-6); /* чтобы слово не заезжало под галочку */
+}
+
+.card__speaker {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: var(--teal-500);
+  opacity: 0;
+  transform: translateX(-5px) scale(0.9);
+  transition:
+    opacity var(--dur-base),
+    transform var(--dur-base) ease-out;
+}
+
+.card:hover .card__speaker,
+.card:focus-within .card__speaker {
+  opacity: 1;
+  transform: none;
+}
+
+.card--learned .card__check {
+  display: flex;
+  animation: check-pop 0.34s var(--ease-pop);
+}
+
+@keyframes check-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .card__check {
   position: absolute;
   top: var(--space-3);
   right: var(--space-3);
+  z-index: 2;
   display: none;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
-  background: var(--grass-500);
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(180deg, var(--grass-500), #5ba33c);
   color: #fff;
   border-radius: 50%;
   font-size: var(--text-sm);
   font-weight: 800;
-}
-
-.card--learned .card__check {
-  display: flex;
+  box-shadow:
+    0 0 0 3px #fff,
+    0 2px 0 var(--line);
 }
 
 .card__en {
@@ -272,7 +336,7 @@ h2 {
   font-size: var(--text-xl);
   font-weight: 700;
   line-height: 1.1;
-  padding-right: var(--space-6);
+  color: var(--ink-900);
 }
 
 .card__say {
@@ -303,20 +367,22 @@ h2 {
   font: inherit;
   font-size: var(--text-sm);
   font-weight: 800;
-  color: var(--teal-500);
-  background: #fff;
-  border: 2px solid var(--teal-500);
+  color: var(--teal-700);
+  background: var(--teal-100);
+  border: 2px solid rgba(47, 184, 166, 0.35);
   border-radius: var(--radius-pill);
   cursor: pointer;
   transition:
     background var(--dur-base),
     border-color var(--dur-base),
     color var(--dur-base),
+    box-shadow var(--dur-base),
     transform var(--dur-fast) ease-out;
 }
 
 .card__mic:hover {
-  background: #ecfaf7;
+  background: #d5f0ea;
+  border-color: var(--teal-500);
 }
 
 .card__mic:active {
@@ -325,8 +391,8 @@ h2 {
 
 .card__mic-icon {
   flex: none;
-  width: 16px;
-  height: 16px;
+  width: 17px;
+  height: 17px;
 }
 
 .card__mic[data-state='listening'] {
@@ -338,21 +404,32 @@ h2 {
 
 .card__mic[data-state='hold'] {
   color: var(--ink-700);
-  background: var(--cream-50);
+  background: var(--cream-200);
   border-color: var(--line-strong);
   touch-action: none;
   user-select: none;
+}
+
+.card__mic[data-state='hold']:hover {
+  background: var(--cream-100);
+  border-color: var(--ink-300);
 }
 
 .card__mic[data-state='hold-active'] {
   color: #fff;
   background: var(--accent-500);
   border-color: var(--accent-700);
+  box-shadow: 0 0 0 6px rgba(255, 138, 61, 0.18);
 }
 
 .card__mic[data-state='done'] {
   color: #fff;
   background: var(--grass-500);
+  border-color: var(--grass-700);
+}
+
+.card__mic[data-state='done']:hover {
+  background: var(--grass-700);
   border-color: var(--grass-700);
 }
 
@@ -370,10 +447,11 @@ h2 {
 /* му-метр: шкала громкости + полоска протяжности */
 .card__meter {
   position: relative;
-  height: 9px;
+  height: 10px;
   overflow: hidden;
   background: var(--cream-200);
   border-radius: var(--radius-pill);
+  box-shadow: inset 0 1px 2px rgba(122, 95, 71, 0.18);
   opacity: 0;
   transition: opacity var(--dur-base);
 }
@@ -386,7 +464,7 @@ h2 {
   position: absolute;
   inset: 0 auto 0 0;
   width: 0;
-  background: var(--amber-500);
+  background: linear-gradient(90deg, var(--amber-500), #f9cd6d);
   border-radius: var(--radius-pill);
   transition:
     width 60ms linear,
@@ -399,12 +477,14 @@ h2 {
   bottom: 0;
   width: 0;
   height: 3px;
-  background: var(--grass-500);
+  background: var(--grass-700);
+  opacity: 0.75;
+  border-radius: var(--radius-pill);
   transition: width 80ms linear;
 }
 
 .card__meter--good .card__meter-fill {
-  background: var(--grass-500);
+  background: linear-gradient(90deg, var(--grass-500), var(--grass-300));
 }
 
 /* речевой пузырь */
@@ -658,6 +738,7 @@ h2 {
   color: var(--ink-900);
   text-decoration: none;
   letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 .nav {
@@ -1177,6 +1258,14 @@ h2 {
   pointer-events: auto;
 }
 
+/* на тач-экранах причаливший Бынич не должен перехватывать тапы по карточкам:
+   погладить его можно в hero, где он крупный */
+@media (hover: none) {
+  .mascot--docked .bull {
+    pointer-events: none;
+  }
+}
+
 .mascot--docked {
   transition:
     left var(--dur-slow) var(--ease-pop),
@@ -1292,6 +1381,28 @@ h2 {
   .hero__stage {
     order: -1;
     max-width: 320px;
+  }
+}
+
+/* узкие экраны: шапка в две строки, якоря учитывают её высоту */
+@media (max-width: 640px) {
+  .header__inner {
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .nav {
+    justify-content: center;
+    gap: var(--space-1) var(--space-3);
+    font-size: var(--text-sm);
+  }
+
+  [id='program'],
+  [id='ask'],
+  [id='reviews'],
+  [id='premium'],
+  [id='faq'] {
+    scroll-margin-top: 116px;
   }
 }
 
