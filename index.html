@@ -15,14 +15,16 @@
   </head>
   <body>
     <header class="site-header">
-      <a class="brand" href="#top">Му-En</a>
-      <nav class="nav">
-        <a href="#program">Программа</a>
-        <a href="#quiz">Повторение</a>
-        <a href="#reviews">Отзывы</a>
-        <a href="#premium">Стоимость</a>
-        <a href="#faq">FAQ</a>
-      </nav>
+      <div class="header__inner">
+        <a class="brand" href="#top">Му-En</a>
+        <nav class="nav">
+          <a href="#program">Программа</a>
+          <a href="#ask">Словарь</a>
+          <a href="#reviews">Отзывы</a>
+          <a href="#premium">Стоимость</a>
+          <a href="#faq">FAQ</a>
+        </nav>
+      </div>
     </header>
 
     <main id="top">
@@ -55,18 +57,7 @@
         <div id="program-levels"></div>
       </section>
 
-      <section class="section section--alt" id="quiz">
-        <p class="section__eyebrow">Контроль знаний</p>
-        <h2>Повторение</h2>
-        <p class="section__lead">Бынич произносит слово — выберите, какое.</p>
-        <div class="quiz">
-          <button class="btn btn--sm quiz__listen" id="quiz-listen" type="button">Послушать ещё раз</button>
-          <div class="quiz__options" id="quiz-options"></div>
-          <p class="quiz__streak" id="quiz-streak" aria-live="polite"></p>
-        </div>
-      </section>
-
-      <section class="section" id="ask">
+      <section class="section section--alt" id="ask">
         <p class="section__eyebrow">Справочная</p>
         <h2>Словарь под рукой</h2>
         <p class="section__lead">Введите слово — Бынич посмотрит у себя.</p>
@@ -83,39 +74,51 @@
         </form>
       </section>
 
-      <section class="section section--alt" id="reviews">
+      <section class="section" id="reviews">
         <p class="section__eyebrow">Рекомендуют</p>
         <h2>Отзывы</h2>
         <div class="quotes">
           <figure class="quote quote--1">
-            <span class="quote__avatar" aria-hidden="true">М</span>
-            <blockquote>«Петька стал увереннее. И громче — теперь его слышно с другого конца луга.»</blockquote>
-            <figcaption>мама Петьки, 6 лет</figcaption>
+            <blockquote>Петька стал увереннее. И громче — теперь его слышно с другого конца луга.</blockquote>
+            <figcaption class="quote__meta">
+              <span class="quote__avatar" aria-hidden="true">М</span>
+              мама Петьки, 6 лет
+            </figcaption>
           </figure>
           <figure class="quote quote--2">
-            <span class="quote__avatar" aria-hidden="true">Т</span>
-            <blockquote>«Учитель добрый. И жуёт.»</blockquote>
-            <figcaption>Тоня, 7 лет</figcaption>
+            <blockquote>Учитель добрый. И жуёт.</blockquote>
+            <figcaption class="quote__meta">
+              <span class="quote__avatar" aria-hidden="true">Т</span>
+              Тоня, 7 лет
+            </figcaption>
           </figure>
           <figure class="quote quote--3">
-            <span class="quote__avatar" aria-hidden="true">П</span>
-            <blockquote>«Сначала смущали рога у преподавателя. Потом перестали.»</blockquote>
-            <figcaption>папа Маши, 34 года</figcaption>
+            <blockquote>Сначала смущали рога у преподавателя. Потом перестали.</blockquote>
+            <figcaption class="quote__meta">
+              <span class="quote__avatar" aria-hidden="true">П</span>
+              папа Маши, 34 года
+            </figcaption>
           </figure>
           <figure class="quote quote--4">
-            <span class="quote__avatar" aria-hidden="true">Л</span>
-            <blockquote>«Пришли за английским, остались из-за травы. Отличная трава.»</blockquote>
-            <figcaption>коза Люся, слушала с краю</figcaption>
+            <blockquote>Пришли за английским, остались из-за травы. Отличная трава.</blockquote>
+            <figcaption class="quote__meta">
+              <span class="quote__avatar" aria-hidden="true">Л</span>
+              коза Люся, слушала с краю
+            </figcaption>
           </figure>
           <figure class="quote quote--5">
-            <span class="quote__avatar" aria-hidden="true">З</span>
-            <blockquote>«Раньше я вообще молчала. Теперь говорят, у меня акцент.»</blockquote>
-            <figcaption>Зорька, соседка по лугу</figcaption>
+            <blockquote>Раньше я вообще молчала. Теперь говорят, у меня акцент.</blockquote>
+            <figcaption class="quote__meta">
+              <span class="quote__avatar" aria-hidden="true">З</span>
+              Зорька, соседка по лугу
+            </figcaption>
           </figure>
           <figure class="quote quote--6">
-            <span class="quote__avatar" aria-hidden="true">M</span>
-            <blockquote>«Полгода назад не знал ни одного английского слова. Теперь знаю.»</blockquote>
-            <figcaption>Mr. Moose, выпускник</figcaption>
+            <blockquote>Полгода назад не знал ни одного английского слова. Теперь знаю.</blockquote>
+            <figcaption class="quote__meta">
+              <span class="quote__avatar" aria-hidden="true">M</span>
+              Mr. Moose, выпускник
+            </figcaption>
           </figure>
         </div>
       </section>

@@ -203,71 +203,6 @@ if (bull) {
     }
   }
 
-  // ---------- повторение (аудиоквиз) ----------
-  const quizOptions = document.getElementById('quiz-options')
-  const quizListen = document.getElementById('quiz-listen') as HTMLButtonElement | null
-  const quizStreak = document.getElementById('quiz-streak')
-  const PRAISE = ['Именно.', 'Верно.', 'Так.', 'Отлично.']
-  let quizTarget: Word = WORDS[0]!
-  let quizLock = false
-  let streak = 0
-
-  const newRound = (): void => {
-    quizTarget = WORDS[Math.floor(Math.random() * WORDS.length)]!
-    const others = WORDS.filter((w) => w.en !== quizTarget.en)
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 2)
-    const options = [quizTarget, ...others].sort(() => Math.random() - 0.5)
-    if (!quizOptions) return
-    quizOptions.classList.remove('quiz__options--locked')
-    quizOptions.innerHTML = ''
-    for (const w of options) {
-      const btn = document.createElement('button')
-      btn.type = 'button'
-      btn.className = 'quiz__option'
-      btn.textContent = w.en
-      if (w.en === quizTarget.en) btn.dataset.correct = '1'
-      btn.addEventListener('click', () => {
-        if (quizLock) return
-        quizLock = true
-        quizOptions.classList.add('quiz__options--locked')
-        if (w.en === quizTarget.en) {
-          streak++
-          engine.nod()
-          nod()
-          const praise = streak >= 3 ? 'Бынич доволен: три подряд.' : PRAISE[Math.floor(Math.random() * PRAISE.length)]!
-          bubble(praise, 1100)
-          if (quizStreak) quizStreak.textContent = streak >= 2 ? `правильно подряд: ${streak}` : ''
-          markLearned(w)
-          window.setTimeout(() => {
-            quizLock = false
-            newRound()
-            // раунд сам озвучивается — контекст уже разбужен кликом
-            const d = engine.mooWord(quizTarget.en)
-            setMooing(d * 1000 + 120)
-          }, 1100)
-        } else {
-          streak = 0
-          if (quizStreak) quizStreak.textContent = ''
-          const d = engine.mooWord(quizTarget.en)
-          setMooing(d * 1000 + 120)
-          puzzled()
-          bubble('Почти. Слушайте ещё.', 1400)
-          window.setTimeout(() => {
-            quizLock = false
-            quizOptions.classList.remove('quiz__options--locked')
-          }, 900)
-        }
-      })
-      quizOptions.append(btn)
-    }
-  }
-  newRound()
-  quizListen?.addEventListener('click', () => {
-    const d = engine.mooWord(quizTarget.en)
-    setMooing(d * 1000 + 120)
-  })
-
   // ---------- словарь под рукой ----------
   const askForm = document.getElementById('ask-form') as HTMLFormElement | null
   const askInput = document.getElementById('ask-input') as HTMLInputElement | null
@@ -308,13 +243,19 @@ if (bull) {
       const el = cardEls.get(w.en)
       el?.classList.add('card--learned')
       markLearned(w)
+    } else if (v.startsWith('moo')) {
+      // слово начинается как надо — значит, существует; Бынич произносит его уверенно
+      askFails = 0
+      const d = engine.mooWord(v)
+      setMooing(d * 1000 + 120)
+      bubble('Есть такое слово.', 1500)
     } else {
       askFails++
       engine.question()
       puzzled(1800)
-      if (askFails >= 3) bubble('Всё, что знаю, — выше, в программе.', 1800)
-      else if (askFails === 2) bubble('Не нашёл. Попробуйте слово попроще.', 1700)
-      else bubble('Не нашёл.', 1400)
+      if (askFails === 2) bubble('И этого нет.', 1600)
+      else if (askFails >= 3) bubble('Есть только слова из программы.', 1800)
+      else bubble('Такого слова нет.', 1500)
     }
     askInput.value = ''
   })
