@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Английский с Быничем — школа moo-слов</title>
+    <meta
+      name="description"
+      content="Бынич, бык с добрыми глазами, учит детей английским словам на «moo» и произносит их протяжным мычанием: мууууун, муууууд."
+    />
+    <link
+      rel="icon"
+      href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="58" r="38" fill="%23C98A5B"/><ellipse cx="24" cy="30" rx="13" ry="6" fill="%23F0E0C4" transform="rotate(-28 24 30)"/><ellipse cx="76" cy="30" rx="13" ry="6" fill="%23F0E0C4" transform="rotate(28 76 30)"/><ellipse cx="38" cy="54" rx="7" ry="9" fill="white"/><ellipse cx="62" cy="54" rx="7" ry="9" fill="white"/><circle cx="38" cy="56" r="3.5" fill="%233B2314"/><circle cx="62" cy="56" r="3.5" fill="%233B2314"/><ellipse cx="50" cy="76" rx="19" ry="13" fill="%23ECC6A3"/><ellipse cx="43" cy="74" rx="2.5" ry="3.5" fill="%238A5A32"/><ellipse cx="57" cy="74" rx="2.5" ry="3.5" fill="%238A5A32"/></svg>'
+    />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#top">Му-En</a>
+      <nav class="nav">
+        <a href="#dictionary">Словарь</a>
+        <a href="#dj">Moo-DJ</a>
+        <a href="#reviews">Отзывы</a>
+        <a href="#premium">Тариф</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="hero__text">
+          <h1>Английский с Быничем</h1>
+          <p class="hero__sub">
+            Школа английского для детей. Учим только самое главное — слова на «moo».
+            <strong>От муу до fluency.</strong>
+          </p>
+          <div class="hero__actions">
+            <button class="btn" id="meet-btn" type="button">Познакомиться</button>
+            <button class="btn btn--ghost" id="hold-btn" type="button">Зажми Бынича</button>
+          </div>
+          <p class="hero__hint">
+            Веди курсором или пальцем — Бынич следит добрыми глазами. Зажми его — и он потянет «мууууу».
+          </p>
+        </div>
+        <div class="hero__stage">
+          <div class="bubble" id="bubble" aria-live="polite"></div>
+          <svg
+            id="byanych"
+            class="bull"
+            viewBox="0 0 420 470"
+            role="img"
+            aria-label="Бынич — бык с добрыми глазами"
+          >
+            <g id="bull-body">
+              <!-- хвост -->
+              <g id="tail">
+                <path
+                  d="M320 268 Q 372 280 362 344"
+                  fill="none"
+                  stroke="#a5714a"
+                  stroke-width="13"
+                  stroke-linecap="round"
+                />
+                <ellipse cx="361" cy="354" rx="14" ry="19" fill="#6b3e22" transform="rotate(-10 361 354)" />
+              </g>
+              <!-- задние ноги -->
+              <g fill="#b0763f" stroke="#8a5a32" stroke-width="5">
+                <rect x="243" y="350" width="30" height="100" rx="13" />
+                <rect x="283" y="350" width="30" height="100" rx="13" />
+              </g>
+              <g fill="#6b3e22">
+                <rect x="243" y="424" width="30" height="26" rx="9" />
+                <rect x="283" y="424" width="30" height="26" rx="9" />
+              </g>
+              <!-- тело -->
+              <ellipse cx="212" cy="320" rx="122" ry="98" fill="#c98a5b" stroke="#8a5a32" stroke-width="5" />
+              <ellipse cx="168" cy="348" rx="34" ry="22" fill="#b87a4b" opacity="0.85" />
+              <ellipse cx="262" cy="296" rx="26" ry="17" fill="#e8c9a8" opacity="0.9" />
+              <!-- передние ноги -->
+              <g fill="#c98a5b" stroke="#8a5a32" stroke-width="5">
+                <rect x="137" y="350" width="30" height="100" rx="13" />
+                <rect x="177" y="350" width="30" height="100" rx="13" />
+              </g>
+              <g fill="#6b3e22">
+                <rect x="137" y="424" width="30" height="26" rx="9" />
+                <rect x="177" y="424" width="30" height="26" rx="9" />
+              </g>
+              <!-- ошейник с бубенцами -->
+              <rect x="126" y="286" width="172" height="26" rx="13" fill="#d9534f" stroke="#a63a36" stroke-width="4" />
+              <circle cx="140" cy="299" r="6" fill="#f7c948" stroke="#c9982a" stroke-width="3" />
+              <circle cx="284" cy="299" r="6" fill="#f7c948" stroke="#c9982a" stroke-width="3" />
+              <circle id="bell" cx="212" cy="322" r="16" fill="#f7c948" stroke="#c9982a" stroke-width="4" />
+              <circle cx="212" cy="327" r="3" fill="#8a6a1a" />
+            </g>
+            <g id="head">
+              <!-- рога -->
+              <path
+                d="M150 84 Q 126 34 92 22 Q 130 24 154 56 Q 162 70 150 84 Z"
+                fill="#f0e0c4"
+                stroke="#c9a96e"
+                stroke-width="4"
+              />
+              <path
+                d="M270 84 Q 294 34 328 22 Q 290 24 266 56 Q 258 70 270 84 Z"
+                fill="#f0e0c4"
+                stroke="#c9a96e"
+                stroke-width="4"
+              />
+              <!-- уши -->
+              <g transform="rotate(-30 112 122)">
+                <ellipse cx="112" cy="122" rx="34" ry="19" fill="#c98a5b" stroke="#8a5a32" stroke-width="5" />
+                <ellipse cx="112" cy="122" rx="18" ry="9" fill="#e8a9a0" />
+              </g>
+              <g transform="rotate(30 300 122)">
+                <ellipse cx="300" cy="122" rx="34" ry="19" fill="#c98a5b" stroke="#8a5a32" stroke-width="5" />
+                <ellipse cx="300" cy="122" rx="18" ry="9" fill="#e8a9a0" />
+              </g>
+              <!-- голова -->
+              <ellipse cx="212" cy="172" rx="106" ry="114" fill="#c98a5b" stroke="#8a5a32" stroke-width="5" />
+              <ellipse cx="212" cy="112" rx="54" ry="36" fill="#d9a878" opacity="0.6" />
+              <!-- чубчик -->
+              <circle cx="194" cy="54" r="17" fill="#a5714a" />
+              <circle cx="216" cy="57" r="14" fill="#a5714a" />
+              <circle cx="180" cy="61" r="11" fill="#a5714a" />
+              <!-- брови -->
+              <path d="M146 138 Q 168 126 190 136" fill="none" stroke="#8a5a32" stroke-width="5" stroke-linecap="round" />
+              <path d="M234 136 Q 256 126 278 138" fill="none" stroke="#8a5a32" stroke-width="5" stroke-linecap="round" />
+              <!-- глаза -->
+              <g class="eye eye--l">
+                <ellipse cx="168" cy="168" rx="21" ry="26" fill="#fff" stroke="#8a5a32" stroke-width="3.5" />
+                <g id="pupil-l">
+                  <circle cx="168" cy="171" r="9.5" fill="#3b2314" />
+                  <circle cx="171.5" cy="166.5" r="3.2" fill="#fff" />
+                  <circle cx="164.5" cy="175.5" r="1.6" fill="#fff" opacity="0.85" />
+                </g>
+              </g>
+              <g class="eye eye--r">
+                <ellipse cx="256" cy="168" rx="21" ry="26" fill="#fff" stroke="#8a5a32" stroke-width="3.5" />
+                <g id="pupil-r">
+                  <circle cx="256" cy="171" r="9.5" fill="#3b2314" />
+                  <circle cx="259.5" cy="166.5" r="3.2" fill="#fff" />
+                  <circle cx="252.5" cy="175.5" r="1.6" fill="#fff" opacity="0.85" />
+                </g>
+              </g>
+              <!-- румянец -->
+              <ellipse cx="122" cy="214" rx="13" ry="8" fill="#e89b8b" opacity="0.5" />
+              <ellipse cx="302" cy="214" rx="13" ry="8" fill="#e89b8b" opacity="0.5" />
+              <!-- морда -->
+              <g id="muzzle">
+                <ellipse cx="212" cy="250" rx="70" ry="48" fill="#ecc6a3" stroke="#c9987a" stroke-width="4" />
+                <ellipse cx="184" cy="238" rx="8.5" ry="12" fill="#8a5a32" transform="rotate(-14 184 238)" />
+                <ellipse cx="240" cy="238" rx="8.5" ry="12" fill="#8a5a32" transform="rotate(14 240 238)" />
+                <g id="mouth">
+                  <ellipse cx="212" cy="274" rx="23" ry="13" fill="#7a4030" />
+                  <ellipse cx="212" cy="279" rx="11" ry="5.5" fill="#e5837b" />
+                </g>
+              </g>
+            </g>
+          </svg>
+        </div>
+      </section>
+
+      <section class="section" id="dictionary">
+        <h2>Словарь «Moo-words»</h2>
+        <p class="section__lead">Нажми на карточку — Бынич произнесёт слово по-быньочьи.</p>
+        <div class="cards" id="cards"></div>
+      </section>
+
+      <section class="section section--alt" id="dj">
+        <h2>Moo-DJ</h2>
+        <p class="section__lead">Собери свой бычий бит. Три пада за две секунды — муу-комбо.</p>
+        <div class="pads" id="pads"></div>
+      </section>
+
+      <section class="section" id="reviews">
+        <h2>Отзывы стада</h2>
+        <div class="quotes">
+          <figure class="quote">
+            <blockquote>«До Бынича я вообще не разговаривала. Теперь говорю только на английском. Муу-спасибо!»</blockquote>
+            <figcaption>Зорька, корова, 4 года</figcaption>
+          </figure>
+          <figure class="quote">
+            <blockquote>«Нуууууу!»</blockquote>
+            <figcaption>Борька, телёнок, 5 лет <span class="quote__tr">(перевод: «очень нравится»)</span></figcaption>
+          </figure>
+          <figure class="quote">
+            <blockquote>«Наконец-то выучил, как правильно представляться. Муу-хай!»</blockquote>
+            <figcaption>Mr. Moose, лось, Канада</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="premium" id="premium">
+        <div class="premium__card">
+          <h2>Moo-t Premium</h2>
+          <p class="premium__price">5 сена / мес</p>
+          <ul class="premium__list">
+            <li>Безлимитное мычание</li>
+            <li>Личное «муу» от Бынича каждое утро</li>
+            <li>Сертификат «Спикер луга», уровень Moon</li>
+            <li>Доступ к закрытому слову «moo»</li>
+          </ul>
+          <button class="btn btn--gold" id="pay-btn" type="button">Оплатить сеном</button>
+          <p class="premium__note">Возврат — сеном, в течение 14 дней.</p>
+        </div>
+      </section>
+
+      <section class="section" id="faq">
+        <h2>FAQ</h2>
+        <details class="faq__item" open>
+          <summary>А если слово не начинается на «moo»?</summary>
+          <p>Тогда это не английское слово.</p>
+        </details>
+        <details class="faq__item">
+          <summary>Сколько длится курс?</summary>
+          <p>Пока не замычитесь. В среднем — три недели и одна трава.</p>
+        </details>
+        <details class="faq__item">
+          <summary>Как проходят занятия?</summary>
+          <p>На лугу. Камеру включать не обязательно, мычание — обязательно.</p>
+        </details>
+        <details class="faq__item">
+          <summary>Подойдёт ли курс взрослым?</summary>
+          <p>Да, но взрослые платят сеном.</p>
+        </details>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>© Бынич. Все права защищены рогами.</p>
+      <p class="site-footer__small">Сделано на лугу. Без единого внешнего запроса.</p>
+    </footer>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
