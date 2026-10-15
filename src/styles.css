@@ -1435,17 +1435,40 @@ h2 {
   }
 }
 
-/* узкие экраны: шапка в две строки, якоря учитывают её высоту */
+/* узкие экраны: шапка в одну строку — логотип слева, меню уезжает вбок */
 @media (max-width: 640px) {
+  .site-header {
+    padding: 0 var(--space-3);
+  }
+
   .header__inner {
-    flex-direction: column;
-    gap: var(--space-1);
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .brand {
+    flex: none;
   }
 
   .nav {
-    justify-content: center;
-    gap: var(--space-1) var(--space-3);
-    font-size: var(--text-sm);
+    flex: 1 1 auto;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    gap: var(--space-3);
+    font-size: var(--text-xs);
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 2px 2px 4px;
+    margin: -2px -2px -4px;
+  }
+
+  .nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav a {
+    white-space: nowrap;
   }
 
   [id='program'],
@@ -1453,7 +1476,7 @@ h2 {
   [id='reviews'],
   [id='premium'],
   [id='faq'] {
-    scroll-margin-top: 116px;
+    scroll-margin-top: 64px;
   }
 }
 
