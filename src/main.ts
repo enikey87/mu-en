@@ -540,11 +540,18 @@ if (bull) {
   let staredTimer = 0
 
   // реплики не сыплются чаще, чем раз в две секунды
-  const reactToReview = (review: Review, figure?: HTMLElement): void => {
+  const reactToReview = (review: Review, figure?: HTMLElement, joy = false): void => {
     const now = Date.now()
     if (now - lastReactionAt < 2000) return
     lastReactionAt = now
-    nod()
+    if (joy) {
+      // кликнули по отзыву — Бынич радуется: мычит и подпрыгивает
+      const d = engine.happyMoo()
+      setMooing(d * 1000 + 120)
+      jumpForJoy()
+    } else {
+      nod()
+    }
     bubble(review.reaction ?? 'Муу.', 3000)
     if (figure) {
       figure.classList.add('quote--stared')
@@ -574,7 +581,7 @@ if (bull) {
           <span class="quote__avatar" aria-hidden="true">${review.author.charAt(0).toUpperCase()}</span>
           ${review.author}
         </figcaption>`
-      const react = (): void => reactToReview(review, figure)
+      const react = (): void => reactToReview(review, figure, true)
       figure.addEventListener('click', react)
       figure.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
