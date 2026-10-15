@@ -381,9 +381,9 @@ export class MooEngine {
       switch (seg.kind) {
         case 'm': return 0.11
         case 'n': return 0.1
-        case 's': return 0.13
+        case 's': return 0.14
         case 'z': return 0.1
-        case 'c': return 0.12
+        case 'c': return 0.14
         case 'r': case 'l': case 'w': return 0.1
         case 'd': case 'b': return 0.07
         case 't': case 'k': return 0.12
@@ -401,10 +401,13 @@ export class MooEngine {
 
     let t = t0
     // линейный рэмп начинается от предыдущего события автоматизации, поэтому
-    // перед каждым — якорим текущее значение, иначе громкость «вытекает»
+    // значение-якорь нужно именно запланированное, а не «текущее» в момент
+    // планирования — иначе посреди слова появляются ступеньки в тишину
+    let ampAt = 0.0001
     const rampAmp = (target: number, at: number, ramp: number): void => {
-      v.amp.gain.setValueAtTime(v.amp.gain.value, at)
+      v.amp.gain.setValueAtTime(ampAt, at)
       v.amp.gain.linearRampToValueAtTime(target, at + ramp)
+      ampAt = target
     }
     for (const seg of segs) {
       const dur = durOf(seg) * scale
@@ -429,32 +432,42 @@ export class MooEngine {
           break
         }
         case 's': {
-          // свист: голос выключен, шум 6 кГц
+          // свист: голос выключен, шум с наклоном вниз и «дыханием» громкости —
+          // статичный узкий гул свистел бы, а не шипел
           v.bus.gain.setTargetAtTime(0.001, t, 0.02)
-          v.bp2.frequency.setTargetAtTime(6400, t, 0.02)
-          v.bp2.Q.setTargetAtTime(1.1, t, 0.02)
-          v.ng2.gain.setTargetAtTime(0.55, t, 0.02)
-          rampAmp(level * 0.55, t, 0.03)
+          v.bp2.frequency.setTargetAtTime(5900, t, 0.03)
+          v.bp2.frequency.setTargetAtTime(5300, t + dur * 0.5, 0.05)
+          v.bp2.Q.setTargetAtTime(1, t, 0.02)
+          v.ng2.gain.setValueAtTime(0, t)
+          v.ng2.gain.linearRampToValueAtTime(0.42, t + 0.02)
+          v.ng2.gain.setTargetAtTime(0.34, t + 0.03, 0.06)
+          rampAmp(level * 0.42, t, 0.025)
+          rampAmp(level * 0.3, t + dur * 0.55, dur * 0.45)
           t += dur
           break
         }
         case 'z': {
           // звонкий «з»: шум 6 кГц поверх приглушённого голоса
           v.bus.gain.setTargetAtTime(baseBus * 0.5, t, 0.02)
-          v.bp2.frequency.setTargetAtTime(6400, t, 0.02)
-          v.bp2.Q.setTargetAtTime(1.1, t, 0.02)
-          v.ng2.gain.setTargetAtTime(0.35, t, 0.02)
-          rampAmp(level * 0.45, t, 0.03)
+          v.bp2.frequency.setTargetAtTime(5900, t, 0.03)
+          v.bp2.Q.setTargetAtTime(1, t, 0.02)
+          v.ng2.gain.setTargetAtTime(0.28, t, 0.02)
+          rampAmp(level * 0.38, t, 0.03)
           t += dur
           break
         }
         case 'c': {
-          // шипящая «ш»: голос выключен, шум 3 кГц
+          // шипящая «ш»: широкий шумовой горб 1–4,5 кГц с оседанием вниз,
+          // без него узкая полоса свистит как сирена
           v.bus.gain.setTargetAtTime(0.001, t, 0.02)
-          v.bp2.frequency.setTargetAtTime(3000, t, 0.02)
-          v.bp2.Q.setTargetAtTime(1.4, t, 0.02)
-          v.ng2.gain.setTargetAtTime(0.6, t, 0.02)
-          rampAmp(level * 0.6, t, 0.03)
+          v.bp2.frequency.setTargetAtTime(2800, t, 0.03)
+          v.bp2.frequency.setTargetAtTime(2300, t + dur * 0.5, 0.05)
+          v.bp2.Q.setTargetAtTime(0.75, t, 0.02)
+          v.ng2.gain.setValueAtTime(0, t)
+          v.ng2.gain.linearRampToValueAtTime(0.5, t + 0.025)
+          v.ng2.gain.setTargetAtTime(0.4, t + 0.035, 0.06)
+          rampAmp(level * 0.5, t, 0.03)
+          rampAmp(level * 0.38, t + dur * 0.55, dur * 0.45)
           t += dur
           break
         }
