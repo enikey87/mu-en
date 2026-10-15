@@ -2,6 +2,7 @@ import './styles.css'
 import { engine } from './audio'
 import { WORDS, LEVELS, type Word } from './words'
 import { WORD_ART } from './word-art'
+import { REVIEWS, AVATAR_COLORS } from './reviews'
 import { MooDetector, MicError, type MicFailReason } from './moo-detector'
 import type { MooFailReason, MooLive, MooVerdict } from './moo-core'
 
@@ -531,6 +532,28 @@ if (bull) {
     }
     askInput.value = ''
   })
+
+  // ---------- отзывы: при каждом входе — случайные шесть из пула ----------
+  const quotesEl = document.getElementById('quotes')
+  if (quotesEl) {
+    const shuffled = [...REVIEWS]
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+    }
+    shuffled.slice(0, 6).forEach((review, i) => {
+      const figure = document.createElement('figure')
+      figure.className = 'quote'
+      figure.style.setProperty('--avatar-bg', AVATAR_COLORS[i % AVATAR_COLORS.length])
+      figure.innerHTML = `
+        <blockquote>${review.text}</blockquote>
+        <figcaption class="quote__meta">
+          <span class="quote__avatar" aria-hidden="true">${review.author.charAt(0).toUpperCase()}</span>
+          ${review.author}
+        </figcaption>`
+      quotesEl.append(figure)
+    })
+  }
 
   // ---------- Бынич следует за прокруткой ----------
   // В hero фиксированный слой в точности накрывает плейсхолдер (.hero__stage).

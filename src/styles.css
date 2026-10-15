@@ -600,30 +600,6 @@ h2 {
   font-weight: 700;
 }
 
-.quote--1 {
-  --avatar-bg: var(--pink-500);
-}
-
-.quote--2 {
-  --avatar-bg: var(--amber-500);
-}
-
-.quote--3 {
-  --avatar-bg: var(--teal-500);
-}
-
-.quote--4 {
-  --avatar-bg: var(--violet-500);
-}
-
-.quote--5 {
-  --avatar-bg: var(--accent-500);
-}
-
-.quote--6 {
-  --avatar-bg: var(--grass-700);
-}
-
 /* тариф */
 .plan {
   display: flex;

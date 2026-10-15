@@ -80,50 +80,8 @@
       <section class="section" id="reviews">
         <p class="section__eyebrow">Рекомендуют</p>
         <h2>Отзывы</h2>
-        <div class="quotes">
-          <figure class="quote quote--1">
-            <blockquote>Петька стал увереннее. И громче — теперь его слышно с другого конца луга.</blockquote>
-            <figcaption class="quote__meta">
-              <span class="quote__avatar" aria-hidden="true">М</span>
-              мама Петьки, сыну 6 лет
-            </figcaption>
-          </figure>
-          <figure class="quote quote--2">
-            <blockquote>Учитель добрый. И жуёт.</blockquote>
-            <figcaption class="quote__meta">
-              <span class="quote__avatar" aria-hidden="true">Т</span>
-              Тоня, 7 лет
-            </figcaption>
-          </figure>
-          <figure class="quote quote--3">
-            <blockquote>Сначала смущали рога у преподавателя. Потом перестали.</blockquote>
-            <figcaption class="quote__meta">
-              <span class="quote__avatar" aria-hidden="true">П</span>
-              папа Маши, 34 года
-            </figcaption>
-          </figure>
-          <figure class="quote quote--4">
-            <blockquote>Пришли за английским, остались из-за травы. Отличная трава.</blockquote>
-            <figcaption class="quote__meta">
-              <span class="quote__avatar" aria-hidden="true">Л</span>
-              коза Люся, слушала с краю
-            </figcaption>
-          </figure>
-          <figure class="quote quote--5">
-            <blockquote>Раньше я вообще молчала. Теперь говорят, у меня акцент.</blockquote>
-            <figcaption class="quote__meta">
-              <span class="quote__avatar" aria-hidden="true">З</span>
-              Зорька, соседка по лугу
-            </figcaption>
-          </figure>
-          <figure class="quote quote--6">
-            <blockquote>Полгода назад не знал ни одного английского слова. Теперь знаю.</blockquote>
-            <figcaption class="quote__meta">
-              <span class="quote__avatar" aria-hidden="true">M</span>
-              Mr. Moose, выпускник
-            </figcaption>
-          </figure>
-        </div>
+        <!-- при каждом входе main.ts берёт случайные шесть из пула (src/reviews.ts) -->
+        <div class="quotes" id="quotes"></div>
       </section>
 
       <section class="premium" id="premium">
