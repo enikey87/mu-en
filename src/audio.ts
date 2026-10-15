@@ -324,10 +324,11 @@ export class MooEngine {
    * пару формант (двоеточие — тянем), согласные проигрываются настоящими
    * артикуляциями:
    *   m/n — носовой призвук (форманты вниз, голос тише);
-   *   t/k — смычка (тишина) → взрыв (шумовой щелчок) → придыхание;
-   *   d/b — звонкая смычка → мягкий взрыв;
-   *   s   — свист (голос выключен, шум 6 кГц);
-   *   c   — шипящая «ш» (шум 3 кГц), с «t» даёт аффрикату «ч»;
+   *   t/k — смычка (тишина) → взрыв (короткий шумовой транзиент) → придыхание;
+   *   d/b — звонкая смычка → мягкий короткий взрыв;
+   *   s   — свист (голос выключен, тихий шум ~5,5 кГц);
+   *   c   — шипящая «ш» (широкий шумовой горб ~2,5 кГц);
+   *   t+c — аффриката «ч»: смычка → взрыв → шипение без разрыва;
    *   r/l/w — скольжение формант.
    * Согласные больше не «провалы громкости», а отдельные звуки.
    */
@@ -409,7 +410,8 @@ export class MooEngine {
       v.amp.gain.linearRampToValueAtTime(target, at + ramp)
       ampAt = target
     }
-    for (const seg of segs) {
+    for (let si = 0; si < segs.length; si++) {
+      const seg = segs[si]
       const dur = durOf(seg) * scale
       const kind = seg.kind
       if (kind in VOWELS) {
@@ -457,14 +459,15 @@ export class MooEngine {
           break
         }
         case 'c': {
-          // шипящая «ш»: тихий широкий шумовой горб с оседанием вниз
-          v.bus.gain.setTargetAtTime(0.001, t, 0.02)
-          v.bp2.frequency.setTargetAtTime(2600, t, 0.03)
-          v.bp2.frequency.setTargetAtTime(2300, t + dur * 0.5, 0.04)
+          // шипящая «ш»: тихий широкий шумовой горб с оседанием вниз;
+          // после взрыва аффрикаты «т» частота уже едет к «ш» — не дёргаем
+          if (segs[si - 1]?.kind !== 't') {
+            v.bp2.frequency.setTargetAtTime(2600, t, 0.01)
+          }
           v.bp2.Q.setTargetAtTime(0.75, t, 0.02)
-          v.ng2.gain.setValueAtTime(0, t)
-          v.ng2.gain.linearRampToValueAtTime(0.22, t + 0.02)
-          v.ng2.gain.setTargetAtTime(0.17, t + 0.03, 0.05)
+          v.bus.gain.setTargetAtTime(0.001, t, 0.02)
+          // вход плавный: если шум уже идёт после взрыва — не рвём его
+          v.ng2.gain.setTargetAtTime(0.22, t, 0.02)
           rampAmp(level * 0.22, t, 0.025)
           rampAmp(level * 0.16, t + dur * 0.5, dur * 0.5)
           t += dur
@@ -472,35 +475,47 @@ export class MooEngine {
         }
         case 't':
         case 'k': {
-          // глухая смычка: голос выключен до конца взрыва и придыхания
-          v.bus.gain.setTargetAtTime(0.001, t, 0.02)
-          v.ng2.gain.setTargetAtTime(0, t, 0.015)
+          // глухая смычка по Klatt (1980): пауза → короткий взрыв → придыхание.
+          // Взрыв — мгновенная атака и быстрый спад, иначе трещит как трещотка
+          const affricate = segs[si + 1]?.kind === 'c'
+          v.bus.gain.setTargetAtTime(0.001, t, 0.015)
+          v.ng2.gain.setTargetAtTime(0, t, 0.012)
           rampAmp(0.001, t, 0.015)
-          t += 0.05 * scale
-          v.bp2.frequency.setValueAtTime(kind === 'k' ? 3200 : 4300, t)
-          v.bp2.Q.setValueAtTime(1.2, t)
-          v.ng2.gain.setValueAtTime(0.75, t)
-          rampAmp(level * 0.7, t, 0.008)
-          v.ng2.gain.setTargetAtTime(0, t + 0.025, 0.01)
-          t += 0.025 * scale
-          v.bp2.frequency.setTargetAtTime(1700, t, 0.02)
-          v.ng2.gain.setTargetAtTime(0.16, t, 0.02)
-          rampAmp(level * 0.25, t, 0.03)
           t += 0.045 * scale
+          v.bp2.frequency.setTargetAtTime(kind === 'k' ? 3200 : 4200, t, 0.004)
+          v.bp2.Q.setTargetAtTime(1, t, 0.004)
+          v.ng2.gain.setValueAtTime(0, t)
+          v.ng2.gain.linearRampToValueAtTime(0.5, t + 0.003)
+          v.ng2.gain.setTargetAtTime(0, t + 0.005, 0.005)
+          rampAmp(level * 0.55, t, 0.003)
+          t += 0.016 * scale
+          if (affricate) {
+            // «ч»: после взрыва сразу шипение, без придыхания
+            v.bp2.frequency.setTargetAtTime(2600, t, 0.01)
+            break
+          }
+          // придыхание: широкий тихий шум с плавным выходом
+          v.bp2.frequency.setTargetAtTime(1500, t, 0.02)
+          v.bp2.Q.setTargetAtTime(0.6, t, 0.02)
+          v.ng2.gain.setTargetAtTime(0.12, t, 0.015)
+          rampAmp(level * 0.2, t, 0.02)
+          t += 0.05 * scale
           break
         }
         case 'd':
         case 'b': {
-          // звонкая смычка: голос почти не гаснет, взрыв мягче
+          // звонкая смычка: голос-бормотание не гаснет, взрыв мягкий и короткий
           v.bus.gain.setTargetAtTime(baseBus * 0.9, t, 0.02)
-          v.ng2.gain.setTargetAtTime(0, t, 0.015)
+          v.ng2.gain.setTargetAtTime(0, t, 0.012)
           rampAmp(0.05, t, 0.015)
-          t += 0.045 * scale
-          v.bp2.frequency.setValueAtTime(kind === 'b' ? 1000 : 2600, t)
-          v.ng2.gain.setValueAtTime(0.55, t)
-          rampAmp(level * 0.6, t, 0.008)
-          v.ng2.gain.setTargetAtTime(0, t + 0.025, 0.012)
-          t += 0.025 * scale
+          t += 0.04 * scale
+          v.bp2.frequency.setTargetAtTime(kind === 'b' ? 900 : 2400, t, 0.004)
+          v.bp2.Q.setTargetAtTime(1, t, 0.004)
+          v.ng2.gain.setValueAtTime(0, t)
+          v.ng2.gain.linearRampToValueAtTime(0.3, t + 0.002)
+          v.ng2.gain.setTargetAtTime(0, t + 0.005, 0.006)
+          rampAmp(level * 0.45, t, 0.004)
+          t += 0.014 * scale
           break
         }
         case 'r': {
