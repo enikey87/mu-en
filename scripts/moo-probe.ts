@@ -106,7 +106,8 @@ function run(signal: Float32Array, cfg = MOO_CONFIG): MooVerdict {
     if (tracker.result()) break
   }
   // если звук кончился раньше срока, дослушиваем тишину до конца попытки
-  for (let t = (1000 * signal.length) / RATE; !tracker.result() && t < cfg.listenMs + 100; t += HOP / RATE * 1000) {
+  // (с запасом на продление окна — см. maxExtendMs)
+  for (let t = (1000 * signal.length) / RATE; !tracker.result() && t < cfg.listenMs + cfg.maxExtendMs + 200; t += HOP / RATE * 1000) {
     tracker.push(analyzeFrame(silence(WINDOW / RATE * 1000 + 0.001), RATE, cfg), t)
   }
   return tracker.result() ?? { ok: false, reason: 'timeout' }
@@ -179,6 +180,26 @@ const cases: Case[] = [
     ),
     expect: 'no',
     note: 'прерывисто',
+  },
+  {
+    name: 'серия коротких му (сумма)',
+    signal: concat(
+      ambient(),
+      voiced({ f0: 135, f1: 330, f2: 720, ms: 450, levelDb: -15 }),
+      silence(300),
+      voiced({ f0: 135, f1: 330, f2: 720, ms: 450, levelDb: -15 }),
+      silence(300),
+      voiced({ f0: 135, f1: 330, f2: 720, ms: 450, levelDb: -15 }),
+      silence(600),
+    ),
+    expect: 'ok',
+    note: 'сумма коротких засчитывается',
+  },
+  {
+    name: 'мууу началось поздно',
+    signal: concat(noise(3800, -62, next), voiced({ f0: 132, f1: 330, f2: 720, ms: 1200, levelDb: -15 }), silence(800)),
+    expect: 'ok',
+    note: 'окно продлевается, пока мычим',
   },
   {
     name: 'тишина',

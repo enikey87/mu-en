@@ -21,6 +21,14 @@ export interface MooConfig {
   minSustainMs: number
   /** пауза внутри мычания, которая ещё не рвёт отрезок, мс */
   maxGapMs: number
+  /** пока мычание ещё идёт, окно попытки продлевается на это время, мс —
+   *  длинное «мууу» должно засчитаться, а не упереться в таймер */
+  extendMs: number
+  /** суммарный предел продления окна, мс */
+  maxExtendMs: number
+  /** серии коротких «му» засчитываются суммарно, но с запасом:
+   *  сумма должна превысить minSustainMs × burstsFactor */
+  burstsFactor: number
   /** «громко» = фоновый шум + margin, дБ */
   loudMarginDb: number
   /** тише этого мычать бессмысленно, dBFS */
@@ -44,7 +52,10 @@ export const MOO_CONFIG: MooConfig = {
   calibrateMs: 400,
   listenMs: 4200,
   minSustainMs: 800,
-  maxGapMs: 110,
+  maxGapMs: 220,
+  extendMs: 1500,
+  maxExtendMs: 4500,
+  burstsFactor: 1.6,
   loudMarginDb: 12,
   minLoudDb: -45,
   maxLoudDb: -14,
@@ -318,6 +329,12 @@ export class MooTracker {
   private lastMoo = -1
   private bestRunMs = 0
   private verdict: MooVerdict | null = null
+  /** суммарное время мычания без пауз — для серий коротких «му» */
+  private mooMs = 0
+  private prevMoo = false
+  private lastFrameT = -1
+  /** дедлайн попытки; продлевается, пока мычание ещё идёт */
+  private deadline = 0
 
   private lastLevelDb = -Infinity
   private lastLoud = false
@@ -341,10 +358,13 @@ export class MooTracker {
 
     if (this.calibrating) {
       // мычание — не фон: если начали мычать сразу, порог не задирается
+      this.lastFrameT = tMs
+      this.prevMoo = false
       if (!frame.moo) this.ambient.push(frame.db)
       if (tMs >= this.cfg.calibrateMs) {
         this.calibrating = false
         this.threshold = this.pickThreshold()
+        this.deadline = this.cfg.listenMs
       }
       return
     }
@@ -353,6 +373,10 @@ export class MooTracker {
     const moo = loud && frame.moo
     this.lastLoud = loud
     this.lastMooFlag = moo
+    // суммарное время мычания: считаем только между соседними «муу»-кадрами
+    if (this.prevMoo && moo) this.mooMs += Math.max(0, tMs - this.lastFrameT)
+    this.prevMoo = moo
+    this.lastFrameT = tMs
     if (frame.db > this.maxDb) this.maxDb = frame.db
     if (loud) this.loudFrames++
     if (moo) {
@@ -366,11 +390,26 @@ export class MooTracker {
 
     const runMs = this.currentRunMs()
     if (runMs > this.bestRunMs) this.bestRunMs = runMs
-    if (runMs >= this.cfg.minSustainMs) {
-      this.verdict = { ok: true, durationMs: Math.round(runMs) }
+    // засчитывается и непрерывное мычание, и сумма коротких «му» с запасом
+    if (
+      runMs >= this.cfg.minSustainMs ||
+      this.mooMs >= this.cfg.minSustainMs * this.cfg.burstsFactor
+    ) {
+      this.verdict = { ok: true, durationMs: Math.round(Math.max(runMs, this.mooMs)) }
       return
     }
-    if (tMs >= this.cfg.listenMs) this.finish()
+    if (tMs >= this.deadline) {
+      // пользователь ещё мычит — окно продлевается: длинное «мууу»
+      // не должно упираться в таймер
+      if (this.runStart >= 0 && this.deadline < this.cfg.listenMs + this.cfg.maxExtendMs) {
+        this.deadline = Math.min(
+          tMs + this.cfg.extendMs,
+          this.cfg.listenMs + this.cfg.maxExtendMs,
+        )
+      } else {
+        this.finish()
+      }
+    }
   }
 
   result(): MooVerdict | null {
@@ -378,12 +417,13 @@ export class MooTracker {
   }
 
   live(): MooLive {
+    const total = Math.max(this.currentRunMs(), this.mooMs / this.cfg.burstsFactor)
     return {
       // шкала от -55 dBFS (тишина) до -10 dBFS (крик)
       level: clamp01((this.lastLevelDb + 55) / 45),
       loud: !this.calibrating && this.lastLoud,
       moo: !this.calibrating && this.lastMooFlag,
-      progress: clamp01(this.currentRunMs() / this.cfg.minSustainMs),
+      progress: clamp01(total / this.cfg.minSustainMs),
       calibrating: this.calibrating,
     }
   }
