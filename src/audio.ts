@@ -319,7 +319,7 @@ export class MooEngine {
 
   /** Мычит слово: если есть «мини-МФА» — проговаривает по сегментам, иначе старый путь. */
   mooWord(word: string, phon?: string): number {
-    if (phon) return this.mooPhonetic(phon)
+    if (phon) return this.mooPhonetic(phon, word.length)
     const tails: Record<string, Tail> = { n: 'n', d: 'd', t: 't', r: 'r', s: 's', m: 'm' }
     const tail = tails[word[word.length - 1] ?? ''] ?? 'none'
     const dur = Math.min(0.55 + word.length * 0.24, 2.05)
@@ -341,7 +341,7 @@ export class MooEngine {
    *   r/l/w — скольжение формант.
    * Согласные больше не «провалы громкости», а отдельные звуки.
    */
-  private mooPhonetic(phon: string): number {
+  private mooPhonetic(phon: string, wordLen: number): number {
     const ctx = this.ensure()
     const freq = 122 + Math.random() * 26
     const level = 0.85
@@ -384,8 +384,9 @@ export class MooEngine {
       segs.push({ kind: ch, long: false })
     }
 
-    // фирменное «уууу» тянется тем щедрее, чем слово длиннее
-    const longDur = Math.min(0.45 + phon.length * 0.025, 0.85)
+    // фирменное «уууу» тянется тем щедрее, чем длиннее слово:
+    // moo ≈ 0,7 с, moon ≈ 0,8 с, moonlight ≈ 1,3 с
+    const longDur = Math.min(0.42 + wordLen * 0.1, 1.45)
     const durOf = (seg: { kind: string; long: boolean }): number => {
       if (seg.kind in VOWELS) return seg.long ? longDur : 0.13
       switch (seg.kind) {
@@ -397,6 +398,7 @@ export class MooEngine {
         case 'r': case 'l': case 'w': return 0.1
         case 'd': case 'b': return 0.06
         case 't': case 'k': return 0.075
+        case 'p': return 0.075
         default: return 0.08
       }
     }
@@ -537,6 +539,21 @@ export class MooEngine {
           v.bp2.Q.setTargetAtTime(1, t, 0.004)
           v.ng2.gain.setValueAtTime(0, t)
           v.ng2.gain.linearRampToValueAtTime(0.25, t + 0.002)
+          v.ng2.gain.setTargetAtTime(0, t + 0.004, 0.005)
+          rampAmp(level * 0.4, t, 0.003)
+          t += 0.012 * scale
+          break
+        }
+        case 'p': {
+          // глухая губная смычка (moonscape): пауза и мягкий низкий взрыв
+          v.bus.gain.setTargetAtTime(0.001, t, 0.01)
+          v.ng2.gain.setTargetAtTime(0, t, 0.012)
+          rampAmp(0.001, t, 0.015)
+          t += 0.035 * scale
+          v.bp2.frequency.setTargetAtTime(900, t, 0.004)
+          v.bp2.Q.setTargetAtTime(1, t, 0.004)
+          v.ng2.gain.setValueAtTime(0, t)
+          v.ng2.gain.linearRampToValueAtTime(0.3, t + 0.002)
           v.ng2.gain.setTargetAtTime(0, t + 0.004, 0.005)
           rampAmp(level * 0.4, t, 0.003)
           t += 0.012 * scale

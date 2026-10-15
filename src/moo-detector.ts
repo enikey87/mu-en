@@ -9,7 +9,7 @@
    как только прозвучал вердикт. Ничего не записывается и не отправляется.
    ============================================================ */
 
-import { MOO_CONFIG, MooTracker, analyzeFrame, type MooLive, type MooVerdict } from './moo-core'
+import { MOO_CONFIG, MooTracker, analyzeFrame, type MooConfig, type MooLive, type MooVerdict } from './moo-core'
 
 export type MicFailReason = 'unsupported' | 'denied' | 'no-device' | 'busy'
 
@@ -93,8 +93,9 @@ export class MooDetector {
     return this.running
   }
 
-  /** Начать попытку: при отказе микрофона бросит MicError, иначе позовёт onDone. */
-  async start(hooks: MooHooks): Promise<void> {
+  /** Начать попытку: при отказе микрофона бросит MicError, иначе позовёт onDone.
+   * cfg позволяет менять планку попытки — например, тянуть дольше на длинных словах. */
+  async start(hooks: MooHooks, cfg: MooConfig = MOO_CONFIG): Promise<void> {
     if (this.running) return
     if (!MooDetector.isSupported()) throw new MicError('unsupported')
 
@@ -120,7 +121,7 @@ export class MooDetector {
     this.sink = sink
     this.buf = new Float32Array(analyser.fftSize)
     this.windowMs = (1000 * analyser.fftSize) / ctx.sampleRate
-    this.tracker = new MooTracker(MOO_CONFIG, this.windowMs)
+    this.tracker = new MooTracker(cfg, this.windowMs)
     this.startedAt = performance.now()
     this.running = true
 

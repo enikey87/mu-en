@@ -4,7 +4,7 @@ import { WORDS, LEVELS, type Word } from './words'
 import { WORD_ART } from './word-art'
 import { REVIEWS, AVATAR_COLORS, type Review } from './reviews'
 import { MooDetector, MicError, type MicFailReason } from './moo-detector'
-import type { MooFailReason, MooLive, MooVerdict } from './moo-core'
+import { MOO_CONFIG, type MooFailReason, type MooLive, type MooVerdict } from './moo-core'
 
 const bull = document.getElementById('byanych') as SVGSVGElement | null
 const bubbleEl = document.getElementById('bubble')
@@ -224,7 +224,11 @@ if (bull) {
     busy: 'Микрофон занят кем-то другим. Зажми и мычи сам!',
   }
 
-  const HOLD_MIN_MS = 1000
+  const HOLD_MIN_BASE = 800
+
+  /** Чем длиннее слово, тем дольше нужно тянуть «мууу»: и Быничу, и ученику. */
+  const sustainFor = (w: Word): number => Math.min(1500, 700 + w.en.length * 85)
+  const holdMinFor = (w: Word): number => HOLD_MIN_BASE + w.en.length * 60
 
   const detector = new MooDetector(() => engine.ensure())
   const micSupported = MooDetector.isSupported()
@@ -335,12 +339,24 @@ if (bull) {
     bull.classList.add('bull--listening')
     setMicState(ctl, 'listening')
     setMeter(ctl, null)
-    bubble('Слушаю… скажи громко: мууууу', 2200)
+    bubble(
+      ctl.word.en.length >= 8 ? 'Слово длинное — тяни мууууу подольше!' : 'Слушаю… скажи громко: мууууу',
+      2200,
+    )
+    // планка попытки зависит от длины слова, му-метр показывает именно её
+    const cfg = {
+      ...MOO_CONFIG,
+      minSustainMs: sustainFor(ctl.word),
+      listenMs: Math.max(MOO_CONFIG.listenMs, sustainFor(ctl.word) + 2000),
+    }
     try {
-      await detector.start({
-        onFrame: (live) => setMeter(ctl, live),
-        onDone: (verdict) => finishAttempt(ctl, verdict),
-      })
+      await detector.start(
+        {
+          onFrame: (live) => setMeter(ctl, live),
+          onDone: (verdict) => finishAttempt(ctl, verdict),
+        },
+        cfg,
+      )
     } catch (err) {
       clearListening(ctl)
       goHoldMode(err instanceof MicError ? err.reason : 'busy')
@@ -382,7 +398,7 @@ if (bull) {
     engine.endHold()
     setMooing(350)
     clearListening(ctl)
-    if (heldMs >= HOLD_MIN_MS) {
+    if (heldMs >= holdMinFor(ctl.word)) {
       passMoo(ctl)
     } else {
       engine.question()
