@@ -555,6 +555,18 @@ h2 {
   border: 3px solid var(--line);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
+  cursor: pointer;
+  transition:
+    border-color var(--dur-base),
+    box-shadow var(--dur-base);
+}
+
+/* Бынич читает именно этот отзыв: рамка горит, пока висит реплика */
+.quote--stared {
+  border-color: var(--teal-500);
+  box-shadow:
+    0 5px 0 var(--line-strong),
+    0 0 0 5px rgba(47, 184, 166, 0.12);
 }
 
 .quote blockquote {

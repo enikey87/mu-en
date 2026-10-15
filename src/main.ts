@@ -2,7 +2,7 @@ import './styles.css'
 import { engine } from './audio'
 import { WORDS, LEVELS, type Word } from './words'
 import { WORD_ART } from './word-art'
-import { REVIEWS, AVATAR_COLORS } from './reviews'
+import { REVIEWS, AVATAR_COLORS, type Review } from './reviews'
 import { MooDetector, MicError, type MicFailReason } from './moo-detector'
 import type { MooFailReason, MooLive, MooVerdict } from './moo-core'
 
@@ -533,26 +533,77 @@ if (bull) {
     askInput.value = ''
   })
 
-  // ---------- отзывы: при каждом входе — случайные шесть из пула ----------
+  // ---------- отзывы: случайные шесть + Бынич комментирует ----------
   const quotesEl = document.getElementById('quotes')
+  const reviewsSection = document.getElementById('reviews')
+  let lastReactionAt = 0
+  let staredTimer = 0
+
+  // реплики не сыплются чаще, чем раз в две секунды
+  const reactToReview = (review: Review, figure?: HTMLElement): void => {
+    const now = Date.now()
+    if (now - lastReactionAt < 2000) return
+    lastReactionAt = now
+    nod()
+    bubble(review.reaction ?? 'Муу.', 3000)
+    if (figure) {
+      figure.classList.add('quote--stared')
+      window.clearTimeout(staredTimer)
+      staredTimer = window.setTimeout(() => figure.classList.remove('quote--stared'), 3000)
+    }
+  }
+
   if (quotesEl) {
     const shuffled = [...REVIEWS]
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1))
       ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
     }
+    const rendered: Array<{ review: Review; figure: HTMLElement }> = []
     shuffled.slice(0, 6).forEach((review, i) => {
       const figure = document.createElement('figure')
       figure.className = 'quote'
       figure.style.setProperty('--avatar-bg', AVATAR_COLORS[i % AVATAR_COLORS.length])
+      // тап по отзыву — Бынич отвечает именно на него
+      figure.setAttribute('role', 'button')
+      figure.setAttribute('tabindex', '0')
+      figure.setAttribute('aria-label', 'Бынич комментирует этот отзыв')
       figure.innerHTML = `
         <blockquote>${review.text}</blockquote>
         <figcaption class="quote__meta">
           <span class="quote__avatar" aria-hidden="true">${review.author.charAt(0).toUpperCase()}</span>
           ${review.author}
         </figcaption>`
+      const react = (): void => reactToReview(review, figure)
+      figure.addEventListener('click', react)
+      figure.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          react()
+        }
+      })
+      rendered.push({ review, figure })
       quotesEl.append(figure)
     })
+
+    // один раз за визит: когда отзывы въехали в экран, Бынич «дочитывает» случайный
+    if (reviewsSection && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          const entry = entries[0]
+          if (!entry?.isIntersecting) return
+          observer.unobserve(entry.target)
+          window.setTimeout(() => {
+            const commented = rendered.filter((r) => r.review.reaction)
+            if (!commented.length) return
+            const pick = commented[Math.floor(Math.random() * commented.length)]
+            reactToReview(pick.review, pick.figure)
+          }, 1400)
+        },
+        { threshold: 0.3 },
+      )
+      observer.observe(reviewsSection)
+    }
   }
 
   // ---------- Бынич следует за прокруткой ----------
