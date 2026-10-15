@@ -29,9 +29,14 @@ interface Voice {
   f2: BiquadFilterNode
   lp: BiquadFilterNode
   amp: GainNode
+  /** громкость голосового тракта — выключаем на глухих согласных */
+  bus: GainNode
   freq: number
   noise: AudioBufferSourceNode
   noiseGain: GainNode
+  /** тракт согласных: тот же шум, но мимо формант — свистящие и взрывы */
+  bp2: BiquadFilterNode
+  ng2: GainNode
 }
 
 /** Затухающий шум — импульс для синтетического «реверба луга» (без сэмплов). */
@@ -65,11 +70,17 @@ function makeNoise(ctx: AudioContext): AudioBuffer {
  *   → вибрато, раскачивающееся не сразу, а к середине
  *   → придыхание на атаке («м») + короткий синтетический реверб луга.
  */
-class MooEngine {
+export class MooEngine {
   private ctx: AudioContext | null = null
   private master: GainNode | null = null
   private noiseBuf: AudioBuffer | null = null
   private hold: Voice | null = null
+  /** фабрика контекста — подменяется в проверках, чтобы рендерить в OfflineAudioContext */
+  private readonly ctxFactory: (() => AudioContext) | undefined
+
+  constructor(ctxFactory?: () => AudioContext) {
+    this.ctxFactory = ctxFactory
+  }
 
   /** Создаёт AudioContext по первому пользовательскому жесту (autoplay policy). */
   ensure(): AudioContext {
@@ -77,7 +88,7 @@ class MooEngine {
       const AC =
         window.AudioContext ??
         (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
-      const ctx = new AC()
+      const ctx = this.ctxFactory ? this.ctxFactory() : new AC()
 
       const comp = ctx.createDynamicsCompressor()
       comp.threshold.value = -20
@@ -101,7 +112,9 @@ class MooEngine {
       this.master = master
       this.noiseBuf = makeNoise(ctx)
     }
-    if (this.ctx.state === 'suspended') void this.ctx.resume()
+    if (this.ctx.state === 'suspended' && this.ctx instanceof AudioContext) {
+      void this.ctx.resume().catch(() => undefined)
+    }
     return this.ctx
   }
 
@@ -181,8 +194,20 @@ class MooEngine {
     lp.connect(amp)
     amp.connect(this.master!)
 
+    // тракт согласных: тот же шум идёт мимо формант и гласного фильтра —
+    // свистящие «с/ш» и взрывы «т/д/к» не должны окрашиваться в «у»
+    const nbp2 = ctx.createBiquadFilter()
+    nbp2.type = 'bandpass'
+    nbp2.frequency.value = 5000
+    nbp2.Q.value = 1
+    const ng2 = ctx.createGain()
+    ng2.gain.value = 0
+    noise.connect(nbp2)
+    nbp2.connect(ng2)
+    ng2.connect(amp)
+
     noise.start(ctx.currentTime)
-    return { oscs, lfo, lfoGain, f1, f2, lp, amp, freq, noise, noiseGain: ng }
+    return { oscs, lfo, lfoGain, f1, f2, lp, amp, bus, freq, noise, noiseGain: ng, bp2: nbp2, ng2 }
   }
 
   /** Одно мычание. Возвращает длительность в секундах (для тайминга анимации). */
@@ -283,12 +308,231 @@ class MooEngine {
     return dur + 0.16
   }
 
-  /** Мычит английское слово: финальная буква задаёт «хвост», длина — протяжность. */
-  mooWord(word: string): number {
+  /** Мычит слово: если есть «мини-МФА» — проговаривает по сегментам, иначе старый путь. */
+  mooWord(word: string, phon?: string): number {
+    if (phon) return this.mooPhonetic(phon)
     const tails: Record<string, Tail> = { n: 'n', d: 'd', t: 't', r: 'r', s: 's', m: 'm' }
     const tail = tails[word[word.length - 1] ?? ''] ?? 'none'
     const dur = Math.min(0.55 + word.length * 0.24, 2.05)
     return this.moo({ dur, tail })
+  }
+
+  /**
+   * Посегментная озвучка «по-быньочьи».
+   *
+   * Строка вида «mu:nlait» читается посимвольно: гласные u/a/i/o/e задают
+   * пару формант (двоеточие — тянем), согласные проигрываются настоящими
+   * артикуляциями:
+   *   m/n — носовой призвук (форманты вниз, голос тише);
+   *   t/k — смычка (тишина) → взрыв (шумовой щелчок) → придыхание;
+   *   d/b — звонкая смычка → мягкий взрыв;
+   *   s   — свист (голос выключен, шум 6 кГц);
+   *   c   — шипящая «ш» (шум 3 кГц), с «t» даёт аффрикату «ч»;
+   *   r/l/w — скольжение формант.
+   * Согласные больше не «провалы громкости», а отдельные звуки.
+   */
+  private mooPhonetic(phon: string): number {
+    const ctx = this.ensure()
+    const freq = 122 + Math.random() * 26
+    const level = 0.85
+    const v = this.buildVoice(freq, 5.6, {})
+    const baseBus = v.bus.gain.value
+
+    const t0 = ctx.currentTime + 0.02
+    for (const o of v.oscs) o.start(t0)
+    v.lfo.start(t0)
+
+    // тракт открывается: «м» прикладывается и раскрывается в первую гласную
+    v.lp.frequency.setValueAtTime(260, t0)
+    v.lp.frequency.linearRampToValueAtTime(6200, t0 + 0.04)
+    // придыхание «м» на атаке
+    v.noiseGain.gain.setValueAtTime(0.14, t0)
+    v.noiseGain.gain.linearRampToValueAtTime(0.0001, t0 + 0.12)
+
+    // вибрато раскачивается к середине слова
+    v.lfoGain.gain.setValueAtTime(0, t0)
+    v.lfoGain.gain.setValueAtTime(0, t0 + 0.2)
+
+    const VOWELS: Record<string, { f1: number; f2: number }> = {
+      u: { f1: 330, f2: 720 },
+      a: { f1: 700, f2: 1150 },
+      i: { f1: 300, f2: 2100 },
+      o: { f1: 450, f2: 820 },
+      e: { f1: 450, f2: 1700 },
+    }
+
+    const segs: Array<{ kind: string; long: boolean }> = []
+    for (let i = 0; i < phon.length; i++) {
+      const ch = phon[i]
+      if (ch === ':') continue
+      if (VOWELS[ch]) {
+        const long = phon[i + 1] === ':'
+        if (long) i++
+        segs.push({ kind: ch, long })
+        continue
+      }
+      segs.push({ kind: ch, long: false })
+    }
+
+    // фирменное «уууу» тянется тем щедрее, чем слово длиннее
+    const longDur = Math.min(0.45 + phon.length * 0.025, 0.85)
+    const durOf = (seg: { kind: string; long: boolean }): number => {
+      if (seg.kind in VOWELS) return seg.long ? longDur : 0.13
+      switch (seg.kind) {
+        case 'm': return 0.11
+        case 'n': return 0.1
+        case 's': return 0.13
+        case 'z': return 0.1
+        case 'c': return 0.12
+        case 'r': case 'l': case 'w': return 0.1
+        case 'd': case 'b': return 0.07
+        case 't': case 'k': return 0.12
+        default: return 0.08
+      }
+    }
+
+    let total = segs.reduce((sum, s) => sum + durOf(s), 0)
+    const scale = total > 2.2 ? 2.2 / total : 1
+
+    const formants = (at: number, f1: number, f2: number): void => {
+      v.f1.frequency.setTargetAtTime(f1, at, 0.028)
+      v.f2.frequency.setTargetAtTime(f2, at, 0.028)
+    }
+
+    let t = t0
+    // линейный рэмп начинается от предыдущего события автоматизации, поэтому
+    // перед каждым — якорим текущее значение, иначе громкость «вытекает»
+    const rampAmp = (target: number, at: number, ramp: number): void => {
+      v.amp.gain.setValueAtTime(v.amp.gain.value, at)
+      v.amp.gain.linearRampToValueAtTime(target, at + ramp)
+    }
+    for (const seg of segs) {
+      const dur = durOf(seg) * scale
+      const kind = seg.kind
+      if (kind in VOWELS) {
+        formants(t, VOWELS[kind].f1, VOWELS[kind].f2)
+        v.bus.gain.setTargetAtTime(baseBus, t, 0.02)
+        v.ng2.gain.setTargetAtTime(0, t, 0.02)
+        rampAmp(level * (seg.long ? 1 : 0.8), t, Math.min(0.05, dur / 2))
+        t += dur
+        continue
+      }
+      switch (kind) {
+        case 'm':
+        case 'n': {
+          // носовой: форманты проваливаются вниз, голос тише, но не гаснет
+          formants(t, 260, kind === 'm' ? 900 : 1500)
+          v.bus.gain.setTargetAtTime(baseBus * 0.85, t, 0.02)
+          v.ng2.gain.setTargetAtTime(0, t, 0.02)
+          rampAmp(level * 0.42, t, 0.03)
+          t += dur
+          break
+        }
+        case 's': {
+          // свист: голос выключен, шум 6 кГц
+          v.bus.gain.setTargetAtTime(0.001, t, 0.02)
+          v.bp2.frequency.setTargetAtTime(6400, t, 0.02)
+          v.bp2.Q.setTargetAtTime(1.1, t, 0.02)
+          v.ng2.gain.setTargetAtTime(0.55, t, 0.02)
+          rampAmp(level * 0.55, t, 0.03)
+          t += dur
+          break
+        }
+        case 'z': {
+          // звонкий «з»: шум 6 кГц поверх приглушённого голоса
+          v.bus.gain.setTargetAtTime(baseBus * 0.5, t, 0.02)
+          v.bp2.frequency.setTargetAtTime(6400, t, 0.02)
+          v.bp2.Q.setTargetAtTime(1.1, t, 0.02)
+          v.ng2.gain.setTargetAtTime(0.35, t, 0.02)
+          rampAmp(level * 0.45, t, 0.03)
+          t += dur
+          break
+        }
+        case 'c': {
+          // шипящая «ш»: голос выключен, шум 3 кГц
+          v.bus.gain.setTargetAtTime(0.001, t, 0.02)
+          v.bp2.frequency.setTargetAtTime(3000, t, 0.02)
+          v.bp2.Q.setTargetAtTime(1.4, t, 0.02)
+          v.ng2.gain.setTargetAtTime(0.6, t, 0.02)
+          rampAmp(level * 0.6, t, 0.03)
+          t += dur
+          break
+        }
+        case 't':
+        case 'k': {
+          // глухая смычка: голос выключен до конца взрыва и придыхания
+          v.bus.gain.setTargetAtTime(0.001, t, 0.02)
+          v.ng2.gain.setTargetAtTime(0, t, 0.015)
+          rampAmp(0.001, t, 0.015)
+          t += 0.05 * scale
+          v.bp2.frequency.setValueAtTime(kind === 'k' ? 3200 : 4300, t)
+          v.bp2.Q.setValueAtTime(1.2, t)
+          v.ng2.gain.setValueAtTime(0.75, t)
+          rampAmp(level * 0.7, t, 0.008)
+          v.ng2.gain.setTargetAtTime(0, t + 0.025, 0.01)
+          t += 0.025 * scale
+          v.bp2.frequency.setTargetAtTime(1700, t, 0.02)
+          v.ng2.gain.setTargetAtTime(0.16, t, 0.02)
+          rampAmp(level * 0.25, t, 0.03)
+          t += 0.045 * scale
+          break
+        }
+        case 'd':
+        case 'b': {
+          // звонкая смычка: голос почти не гаснет, взрыв мягче
+          v.bus.gain.setTargetAtTime(baseBus * 0.9, t, 0.02)
+          v.ng2.gain.setTargetAtTime(0, t, 0.015)
+          rampAmp(0.05, t, 0.015)
+          t += 0.045 * scale
+          v.bp2.frequency.setValueAtTime(kind === 'b' ? 1000 : 2600, t)
+          v.ng2.gain.setValueAtTime(0.55, t)
+          rampAmp(level * 0.6, t, 0.008)
+          v.ng2.gain.setTargetAtTime(0, t + 0.025, 0.012)
+          t += 0.025 * scale
+          break
+        }
+        case 'r': {
+          formants(t, 340, 1150)
+          v.bus.gain.setTargetAtTime(baseBus, t, 0.02)
+          v.ng2.gain.setTargetAtTime(0, t, 0.02)
+          rampAmp(level * 0.6, t, 0.03)
+          t += dur
+          break
+        }
+        case 'l': {
+          formants(t, 360, 950)
+          v.bus.gain.setTargetAtTime(baseBus, t, 0.02)
+          v.ng2.gain.setTargetAtTime(0, t, 0.02)
+          rampAmp(level * 0.6, t, 0.03)
+          t += dur
+          break
+        }
+        case 'w': {
+          formants(t, 300, 650)
+          v.bus.gain.setTargetAtTime(baseBus, t, 0.02)
+          v.ng2.gain.setTargetAtTime(0, t, 0.02)
+          rampAmp(level * 0.6, t, 0.03)
+          t += dur
+          break
+        }
+        default: {
+          t += dur
+        }
+      }
+    }
+
+    const end = t
+    v.amp.gain.setTargetAtTime(0.0001, end - 0.02, 0.045)
+    v.bus.gain.setTargetAtTime(baseBus, end, 0.05)
+    v.lfoGain.gain.setValueAtTime(0, t0 + 0.2)
+    v.lfoGain.gain.linearRampToValueAtTime(freq * 0.02, t0 + Math.min(0.6, (end - t0) * 0.6))
+
+    const stopAt = end + 0.25
+    for (const o of v.oscs) o.stop(stopAt)
+    v.lfo.stop(stopAt)
+    // шум нужен согласным до самого конца — раньше он обрезался на 0,2 с
+    v.noise.stop(stopAt)
+    return end - t0 + 0.16
   }
 
   /** Утвердительное «му-му» (кивок). */

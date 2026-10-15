@@ -394,7 +394,7 @@ if (bull) {
 
   // ---------- программа: карточки по уровням ----------
   const playWord = (w: Word, el?: HTMLElement, withBubble = true): void => {
-    const d = engine.mooWord(w.en)
+    const d = engine.mooWord(w.en, w.moo)
     setMooing(d * 1000 + 120)
     if (withBubble) bubble(`${w.say.toUpperCase()}!`, Math.max(1100, d * 800))
     if (el) {
