@@ -1,6 +1,7 @@
 import './styles.css'
 import { engine } from './audio'
 import { WORDS, LEVELS, type Word } from './words'
+import { WORD_ART } from './word-art'
 import { MooDetector, MicError, type MicFailReason } from './moo-detector'
 import type { MooFailReason, MooLive, MooVerdict } from './moo-core'
 
@@ -416,6 +417,7 @@ if (bull) {
         el.className = 'card'
         if (learned.includes(w.en)) el.classList.add('card--learned')
         el.innerHTML = `
+          <span class="card__art" aria-hidden="true">${WORD_ART[w.en] ?? ''}</span>
           <button class="card__play" type="button" aria-label="Послушать слово ${w.en}">
             <span class="card__head">
               <span class="card__en">${w.en}</span>
