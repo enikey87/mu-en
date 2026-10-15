@@ -435,12 +435,16 @@ export class MooEngine {
       const seg = segs[si]
       const dur = durOf(seg) * scale
       const kind = seg.kind
+      const isFinal = si === segs.length - 1
       if (kind in VOWELS) {
         formants(t, VOWELS[kind].f1, VOWELS[kind].f2)
         v.bus.gain.setTargetAtTime(baseBus, t, 0.02)
         v.ng2.gain.setTargetAtTime(0, t, 0.02)
-        rampAmp(level * (seg.long ? 1 : 0.8), t, Math.min(0.05, dur / 2))
-        t += dur
+        // финальная гласная тянется: слово заканчивается гласной,
+        // а не обрывается щелчком сразу после согласной
+        const vdur = isFinal && !seg.long ? Math.max(dur, 0.22 * scale) : dur
+        rampAmp(level * (seg.long ? 1 : 0.8), t, Math.min(0.05, vdur / 2))
+        t += vdur
         continue
       }
       switch (kind) {
@@ -455,15 +459,18 @@ export class MooEngine {
           break
         }
         case 's': {
-          // свист: голос выключен; тихий шум с живым «дыханием»
+          // свист: голос выключен; тихий шум с живым «дыханием».
+          // Финальный свист — короткий след на затухании, а не плато шипения
           v.bus.gain.setTargetAtTime(0.001, t, 0.01)
           v.bp2.frequency.setTargetAtTime(5600, t, 0.02)
           v.bp2.Q.setTargetAtTime(1, t, 0.02)
-          v.ng2.gain.setTargetAtTime(0.2, t, 0.012)
-          fricBreath(0.2, t, dur)
-          rampAmp(level * 0.2, t, 0.02)
-          rampAmp(level * 0.14, t + dur * 0.5, dur * 0.5)
-          t += dur
+          const fdur = isFinal ? Math.min(dur, 0.055 * scale) : dur
+          const g = isFinal ? 0.14 : 0.2
+          v.ng2.gain.setTargetAtTime(g, t, 0.012)
+          if (!isFinal) fricBreath(g, t, fdur)
+          rampAmp(level * g, t, 0.02)
+          rampAmp(level * 0.06, t + fdur * 0.5, fdur * 0.5)
+          t += fdur
           break
         }
         case 'z': {
@@ -471,25 +478,30 @@ export class MooEngine {
           v.bus.gain.setTargetAtTime(baseBus * 0.5, t, 0.01)
           v.bp2.frequency.setTargetAtTime(5600, t, 0.02)
           v.bp2.Q.setTargetAtTime(1, t, 0.02)
-          v.ng2.gain.setTargetAtTime(0.12, t, 0.015)
-          fricBreath(0.12, t, dur)
+          const fdur = isFinal ? Math.min(dur, 0.05 * scale) : dur
+          const g = isFinal ? 0.1 : 0.12
+          v.ng2.gain.setTargetAtTime(g, t, 0.015)
+          if (!isFinal) fricBreath(g, t, fdur)
           rampAmp(level * 0.15, t, 0.03)
-          t += dur
+          t += fdur
           break
         }
         case 'c': {
           // шипящая «ш»: тихий широкий шумовой горб;
-          // после взрыва аффрикаты «т» частота уже едет к «ш» — не дёргаем
+          // после взрыва аффрикаты «т» частота уже едет к «ш» — не дёргаем.
+          // Финальное шипение — короткий след на затухании
           if (segs[si - 1]?.kind !== 't') {
             v.bp2.frequency.setTargetAtTime(2600, t, 0.01)
           }
           v.bp2.Q.setTargetAtTime(0.75, t, 0.02)
           v.bus.gain.setTargetAtTime(0.001, t, 0.01)
-          v.ng2.gain.setTargetAtTime(0.22, t, 0.02)
-          fricBreath(0.22, t, dur)
-          rampAmp(level * 0.22, t, 0.025)
-          rampAmp(level * 0.16, t + dur * 0.5, dur * 0.5)
-          t += dur
+          const fdur = isFinal ? Math.min(dur, 0.055 * scale) : dur
+          const g = isFinal ? 0.15 : 0.22
+          v.ng2.gain.setTargetAtTime(g, t, 0.02)
+          if (!isFinal) fricBreath(g, t, fdur)
+          rampAmp(level * g, t, 0.025)
+          rampAmp(level * 0.07, t + fdur * 0.5, fdur * 0.5)
+          t += fdur
           break
         }
         case 't':
