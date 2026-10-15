@@ -39,6 +39,17 @@ const nod = (): void => {
   window.setTimeout(() => bull?.classList.remove('bull--nod'), 600)
 }
 
+// ---------- радостный прыжок за новое слово ----------
+let jumpTimer = 0
+const jumpForJoy = (): void => {
+  if (!bull) return
+  bull.classList.remove('bull--jumping')
+  bull.getBoundingClientRect() // перезапуск анимации, если прыгаем снова
+  bull.classList.add('bull--jumping')
+  window.clearTimeout(jumpTimer)
+  jumpTimer = window.setTimeout(() => bull.classList.remove('bull--jumping'), 1700)
+}
+
 // ---------- конфетти ----------
 const CONFETTI_COLORS = ['#ff8a3d', '#2fb8a6', '#8e6fd8', '#f2698f', '#8fc63d', '#f7b32b']
 const confetti = (n = 26): void => {
@@ -261,6 +272,8 @@ if (bull) {
     const again = learned.includes(w.en)
     ctl.root.classList.add('card--learned')
     setMicState(ctl, 'done')
+    // новое слово — Бынич прыгает от радости
+    if (!again) jumpForJoy()
     const d = engine.happyMoo()
     setMooing(d * 1000 + 150)
     confetti(again ? 10 : 22)

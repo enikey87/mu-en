@@ -1131,6 +1131,46 @@ h2 {
   }
 }
 
+/* новое слово: три затухающих прыжка — присел, взлетел, сплющился при посадке */
+.bull--jumping {
+  transform-origin: 50% 100%;
+  animation: bull-jump 1.5s ease-in-out;
+}
+
+@keyframes bull-jump {
+  0% {
+    transform: translateY(0) scale(1, 1);
+  }
+
+  8% {
+    transform: translateY(1.5%) scale(1.07, 0.9);
+  }
+
+  32% {
+    transform: translateY(-10%) scale(0.95, 1.07);
+  }
+
+  52% {
+    transform: translateY(0) scale(1.06, 0.93);
+  }
+
+  62% {
+    transform: translateY(-4%) scale(0.98, 1.03);
+  }
+
+  74% {
+    transform: translateY(0) scale(1.03, 0.97);
+  }
+
+  86% {
+    transform: translateY(-1.5%) scale(0.99, 1.01);
+  }
+
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+}
+
 /* утвердительный кивок */
 .bull--nod #head {
   animation: nod 0.55s ease-in-out;
