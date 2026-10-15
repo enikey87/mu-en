@@ -467,9 +467,8 @@ if (bull) {
     му: 'moo',
     mu: 'moo',
     мычание: 'moo',
-    мёд: 'moor',
-    мед: 'moor',
     мур: 'moor',
+    муур: 'moor',
   }
   let askFails = 0
 

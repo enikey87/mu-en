@@ -544,11 +544,12 @@ h2 {
 }
 
 .quote blockquote::before {
-  content: '«';
+  /* « на большом кегле выглядит как две кавычки — берём классическую „лапку" */
+  content: '“';
   display: block;
   margin-bottom: calc(var(--space-1) * -1);
-  font-size: 2.4rem;
-  line-height: 1;
+  font-size: 2.6rem;
+  line-height: 0.6;
   color: var(--avatar-bg, var(--grass-500));
 }
 
